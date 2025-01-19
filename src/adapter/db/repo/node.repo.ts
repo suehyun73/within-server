@@ -17,10 +17,7 @@ import { nodeTable } from '../orm/schema';
 export class NodeRepo implements NodeRepoPort {
   constructor(private readonly dbService: DbService) {}
 
-  async upsertMany(
-    nodes: Node[],
-    tx = this.dbService.getInstance(),
-  ): Promise<Node[]> {
+  async upsertMany(nodes: Node[], tx = this.dbService.getInstance()): Promise<Node[]> {
     const rows = await tx
       .insert(nodeTable)
       .values(
@@ -62,11 +59,7 @@ export class NodeRepo implements NodeRepoPort {
     );
   }
 
-  async findManyByTargetUrlUserId(
-    targetUrl: Url,
-    userId: Id,
-    tx = this.dbService.getInstance(),
-  ): Promise<Node[]> {
+  async findManyByTargetUrlUserId(targetUrl: Url, userId: Id, tx = this.dbService.getInstance()): Promise<Node[]> {
     const rows = await tx.query.nodeTable.findMany({
       columns: { deletedAt: false },
       where: and(
@@ -91,10 +84,7 @@ export class NodeRepo implements NodeRepoPort {
     );
   }
 
-  async deleteManyByNodeIds(
-    nodeIds: Id[],
-    tx = this.dbService.getInstance(),
-  ): Promise<void> {
+  async deleteManyByNodeIds(nodeIds: Id[], tx = this.dbService.getInstance()): Promise<void> {
     await tx
       .update(nodeTable)
       .set({ deletedAt: Timestamp.now().value })

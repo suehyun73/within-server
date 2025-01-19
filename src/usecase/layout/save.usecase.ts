@@ -7,11 +7,7 @@ import { Md } from 'src/domain/vo/md';
 import { Pos } from 'src/domain/vo/pos';
 import { Scope } from 'src/domain/vo/scope';
 import { Url } from 'src/domain/vo/url';
-import {
-  SaveDtoIn,
-  SaveDtoOut,
-  SaveUsecasePort,
-} from 'src/port/in/layout/save.usecase.port';
+import { SaveDtoIn, SaveDtoOut, SaveUsecasePort } from 'src/port/in/layout/save.usecase.port';
 import { NODE_REPO, NodeRepoPort } from 'src/port/out/repo/node.repo.port';
 
 @Injectable()
@@ -34,24 +30,13 @@ export class SaveUsecase implements SaveUsecasePort {
     );
 
     // 저장되어있는 노드들과 비교하여 없어진 nodeId들 추출
-    const oldNodes = await this.nodeRepo.findManyByTargetUrlUserId(
-      targetUrl,
-      client.id,
-    );
+    const oldNodes = await this.nodeRepo.findManyByTargetUrlUserId(targetUrl, client.id);
     const nodeIdsToDelete = oldNodes
-      .filter(
-        (oldNode) =>
-          !newNodes.some(
-            (newNode) => newNode.localId.value === oldNode.localId!.value,
-          ),
-      )
+      .filter((oldNode) => !newNodes.some((newNode) => newNode.localId.value === oldNode.localId!.value))
       .map((node) => node.id!);
 
     await this.dbService.transaction(async (tx) => {
-      if (nodeIdsToDelete.length > 0) {
-        await this.nodeRepo.deleteManyByNodeIds(nodeIdsToDelete, tx); // 안쓰는 노드들 삭제
-      }
-
+      if (nodeIdsToDelete.length > 0) await this.nodeRepo.deleteManyByNodeIds(nodeIdsToDelete, tx); // 안쓰는 노드들 삭제
       await this.nodeRepo.upsertMany(newNodes, tx); // 없으면 추가, 있으면 업데이트
     });
 

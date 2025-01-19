@@ -41,10 +41,7 @@ export class UserRepo implements UserRepoPort {
       .build();
   }
 
-  async findOneByUserId(
-    userId: Id,
-    tx = this.dbService.getInstance(),
-  ): Promise<User | undefined> {
+  async findOneByUserId(userId: Id, tx = this.dbService.getInstance()): Promise<User | undefined> {
     const row = await tx.query.userTable.findFirst({
       columns: { deletedAt: false },
       where: and(eq(userTable.id, userId.value), isNull(userTable.deletedAt)),
@@ -65,16 +62,10 @@ export class UserRepo implements UserRepoPort {
     );
   }
 
-  async findOneByGoogleId(
-    googleId: GoogleId,
-    tx = this.dbService.getInstance(),
-  ): Promise<User | undefined> {
+  async findOneByGoogleId(googleId: GoogleId, tx = this.dbService.getInstance()): Promise<User | undefined> {
     const row = await tx.query.userTable.findFirst({
       columns: { deletedAt: false },
-      where: and(
-        eq(userTable.googleId, googleId.value),
-        isNull(userTable.deletedAt),
-      ),
+      where: and(eq(userTable.googleId, googleId.value), isNull(userTable.deletedAt)),
     });
 
     return (
@@ -92,10 +83,7 @@ export class UserRepo implements UserRepoPort {
     );
   }
 
-  async deleteByUserId(
-    userId: Id,
-    tx = this.dbService.getInstance(),
-  ): Promise<void> {
+  async deleteByUserId(userId: Id, tx = this.dbService.getInstance()): Promise<void> {
     await tx
       .update(userTable)
       .set({ deletedAt: Timestamp.now().value })

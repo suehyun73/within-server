@@ -8,11 +8,7 @@ export const NODE_REPO = Symbol('NODE_REPO');
 export interface NodeRepoPort {
   upsertMany(nodes: Node[], tx?: Tx): Promise<Node[]>;
 
-  findManyByTargetUrlUserId(
-    targetUrl: Url,
-    userId: Id,
-    tx?: Tx,
-  ): Promise<Node[]>;
+  findManyByTargetUrlUserId(targetUrl: Url, userId: Id, tx?: Tx): Promise<Node[]>;
 
   deleteManyByNodeIds(nodeIds: Id[], tx?: Tx): Promise<void>;
 }

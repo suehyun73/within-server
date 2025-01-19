@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsArray,
-  ValidateNested,
-  IsEnum,
-  IsNumber,
-} from 'class-validator';
+import { IsString, IsArray, ValidateNested, IsEnum, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export const SAVE_USECASE = Symbol('SAVE_USECASE');

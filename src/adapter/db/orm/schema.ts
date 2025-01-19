@@ -1,14 +1,5 @@
 import { eq, isNull, relations, sql } from 'drizzle-orm';
-import {
-  integer,
-  pgEnum,
-  pgTable,
-  serial,
-  text,
-  timestamp,
-  uniqueIndex,
-  varchar,
-} from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgTable, serial, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 
 export const roleEnum = pgEnum('role', ['general', 'admin']);
 export const scopeEnum = pgEnum('scope', ['global', 'domain', 'full-path']);
