@@ -1,0 +1,19 @@
+services:
+  server:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - 3000:3000
+    depends_on:
+      - pg
+
+  pg:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PW}
+      - POSTGRES_DB=${PG_DB}
+    ports:
+      - 5432:5432
+    attach: false
