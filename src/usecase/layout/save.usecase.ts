@@ -36,7 +36,7 @@ export class SaveUsecase implements SaveUsecasePort {
       .map((node) => node.id!);
 
     await this.dbService.transaction(async (tx) => {
-      if (nodeIdsToDelete.length > 0) await this.nodeRepo.deleteManyByNodeIds(nodeIdsToDelete, tx); // 안쓰는 노드들 삭제
+      if (nodeIdsToDelete.length > 0) await this.nodeRepo.deleteManyByIds(nodeIdsToDelete, tx); // 안쓰는 노드들 삭제
       await this.nodeRepo.upsertMany(newNodes, tx); // 없으면 추가, 있으면 업데이트
     });
 

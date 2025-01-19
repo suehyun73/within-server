@@ -17,8 +17,8 @@ import { userTable } from '../orm/schema';
 export class UserRepo implements UserRepoPort {
   constructor(private readonly dbService: DbService) {}
 
-  async save(user: User, tx = this.dbService.getInstance()): Promise<User> {
-    const [row] = await tx
+  async save(user: User, db = this.dbService.getDb()): Promise<User> {
+    const [row] = await db
       .insert(userTable)
       .values({
         googleId: user.googleId.value,
@@ -41,8 +41,8 @@ export class UserRepo implements UserRepoPort {
       .build();
   }
 
-  async findOneByUserId(userId: Id, tx = this.dbService.getInstance()): Promise<User | undefined> {
-    const row = await tx.query.userTable.findFirst({
+  async findOneById(userId: Id, db = this.dbService.getDb()): Promise<User | undefined> {
+    const row = await db.query.userTable.findFirst({
       columns: { deletedAt: false },
       where: and(eq(userTable.id, userId.value), isNull(userTable.deletedAt)),
     });
@@ -62,8 +62,8 @@ export class UserRepo implements UserRepoPort {
     );
   }
 
-  async findOneByGoogleId(googleId: GoogleId, tx = this.dbService.getInstance()): Promise<User | undefined> {
-    const row = await tx.query.userTable.findFirst({
+  async findOneByGoogleId(googleId: GoogleId, db = this.dbService.getDb()): Promise<User | undefined> {
+    const row = await db.query.userTable.findFirst({
       columns: { deletedAt: false },
       where: and(eq(userTable.googleId, googleId.value), isNull(userTable.deletedAt)),
     });
@@ -83,8 +83,8 @@ export class UserRepo implements UserRepoPort {
     );
   }
 
-  async deleteByUserId(userId: Id, tx = this.dbService.getInstance()): Promise<void> {
-    await tx
+  async deleteById(userId: Id, db = this.dbService.getDb()): Promise<void> {
+    await db
       .update(userTable)
       .set({ deletedAt: Timestamp.now().value })
       .where(and(eq(userTable.id, userId.value), isNull(userTable.deletedAt)));
