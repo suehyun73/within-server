@@ -24,7 +24,7 @@ import { NODE_REPO } from 'src/port/out/repo/node.repo.port';
       // 비동기적인 configService를 사용하기 위함
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
+        secret: configService.getOrThrow('JWT_SECRET'),
         signOptions: { expiresIn: '2d' },
       }),
       inject: [ConfigService], // 위의 configService 파라미터에 주입될 의존성
