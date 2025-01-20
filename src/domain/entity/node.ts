@@ -1,6 +1,6 @@
 import { Id } from '../vo/id';
 import { LocalId } from '../vo/localId';
-import { Md } from '../vo/md';
+import { Markdown } from '../vo/markdown';
 import { Pos } from '../vo/pos';
 import { Scope } from '../vo/scope';
 import { Timestamp } from '../vo/timestamp';
@@ -11,7 +11,7 @@ export class Node {
   localId!: LocalId;
   userId!: Id;
   targetUrl!: Url;
-  md!: Md;
+  markdown!: Markdown;
   pos!: Pos;
   scope!: Scope;
   createdAt?: Timestamp;

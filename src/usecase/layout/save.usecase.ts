@@ -3,7 +3,7 @@ import { Builder } from 'builder-pattern';
 import { DbService } from 'src/adapter/db/db.service';
 import { Node } from 'src/domain/entity/node';
 import { LocalId } from 'src/domain/vo/localId';
-import { Md } from 'src/domain/vo/md';
+import { Markdown } from 'src/domain/vo/markdown';
 import { Pos } from 'src/domain/vo/pos';
 import { Scope } from 'src/domain/vo/scope';
 import { Url } from 'src/domain/vo/url';
@@ -23,7 +23,7 @@ export class SaveUsecase implements SaveUsecasePort {
         .localId(LocalId.create(node.localId))
         .userId(client.id)
         .targetUrl(targetUrl)
-        .md(Md.create(node.md))
+        .markdown(Markdown.create(node.markdown))
         .scope(Scope.create(node.scope))
         .pos(Pos.create(node.pos))
         .build(),

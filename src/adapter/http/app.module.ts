@@ -15,6 +15,8 @@ import { NodeRepo } from '../db/repo/node.repo';
 import { UserRepo } from '../db/repo/user.repo';
 import { USER_REPO } from 'src/port/out/repo/user.repo.port';
 import { NODE_REPO } from 'src/port/out/repo/node.repo.port';
+import { APP_FILTER } from '@nestjs/core';
+import { GlobalFilter } from './filter/global.filter';
 
 @Module({
   // 현재 모듈에서 사용하려는 다른 모듈
@@ -34,6 +36,8 @@ import { NODE_REPO } from 'src/port/out/repo/node.repo.port';
 
   // 모듈에서 사용할 서비스나 리포지토리 등의 의존성 주입 정의
   providers: [
+    { provide: APP_FILTER, useClass: GlobalFilter },
+
     DbService,
 
     GoogleOauth2Strategy,

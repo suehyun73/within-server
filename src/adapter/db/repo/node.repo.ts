@@ -4,7 +4,7 @@ import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { Node } from 'src/domain/entity/node';
 import { Id } from 'src/domain/vo/id';
 import { LocalId } from 'src/domain/vo/localId';
-import { Md } from 'src/domain/vo/md';
+import { Markdown } from 'src/domain/vo/markdown';
 import { Pos } from 'src/domain/vo/pos';
 import { Scope } from 'src/domain/vo/scope';
 import { Timestamp } from 'src/domain/vo/timestamp';
@@ -26,7 +26,7 @@ export class NodeRepo implements NodeRepoPort {
           userId: node.userId.value,
           targetUrl: node.targetUrl.value,
           domain: node.targetUrl.extract().domain,
-          md: node.md.value,
+          markdown: node.markdown.value,
           posX: node.pos.value.x,
           posY: node.pos.value.y,
           scope: node.scope.value,
@@ -36,7 +36,7 @@ export class NodeRepo implements NodeRepoPort {
         target: [nodeTable.localId, nodeTable.userId, nodeTable.targetUrl],
         targetWhere: isNull(nodeTable.deletedAt), // 삭제되어지지 않은 node들 중에서 conflict 체크
         set: {
-          md: sql`excluded.md`,
+          markdown: sql`excluded.markdown`,
           posX: sql`excluded.pos_x`,
           posY: sql`excluded.pos_y`,
           scope: sql`excluded.scope`,
@@ -50,7 +50,7 @@ export class NodeRepo implements NodeRepoPort {
         .localId(LocalId.create(row.localId))
         .userId(Id.create(row.userId))
         .targetUrl(Url.create(row.targetUrl))
-        .md(Md.create(row.md))
+        .markdown(Markdown.create(row.markdown))
         .pos(Pos.create({ x: row.posX, y: row.posY }))
         .scope(Scope.create(row.scope))
         .createdAt(Timestamp.create(row.createdAt))
@@ -75,7 +75,7 @@ export class NodeRepo implements NodeRepoPort {
         .localId(LocalId.create(row.localId))
         .userId(Id.create(row.userId))
         .targetUrl(Url.create(row.targetUrl))
-        .md(Md.create(row.md))
+        .markdown(Markdown.create(row.markdown))
         .pos(Pos.create({ x: row.posX, y: row.posY }))
         .scope(Scope.create(row.scope))
         .createdAt(Timestamp.create(row.createdAt))

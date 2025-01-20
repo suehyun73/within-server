@@ -1,4 +1,4 @@
-import { eq, isNull, relations, sql } from 'drizzle-orm';
+import { isNull, relations } from 'drizzle-orm';
 import { integer, pgEnum, pgTable, serial, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 
 export const roleEnum = pgEnum('role', ['general', 'admin']);
@@ -29,7 +29,7 @@ export const nodeTable = pgTable(
       .references(() => userTable.id),
     targetUrl: varchar('target_url').notNull(),
     domain: varchar('domain').notNull(),
-    md: text('md').notNull(),
+    markdown: text('markdown').notNull(),
     scope: scopeEnum().notNull(),
     posX: integer('pos_x').notNull(),
     posY: integer('pos_y').notNull(),

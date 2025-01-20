@@ -15,12 +15,12 @@ class Pos {
   y!: number;
 }
 
-class NodeDto {
+class Node {
   @IsString()
   localId!: string;
 
   @IsString()
-  md!: string;
+  markdown!: string;
 
   @IsEnum(['global', 'domain', 'full-path'])
   scope!: 'global' | 'domain' | 'full-path';
@@ -36,8 +36,8 @@ export class SaveDtoIn {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => NodeDto)
-  nodes!: NodeDto[];
+  @Type(() => Node)
+  nodes!: Node[];
 }
 
 export class SaveDtoOut {}

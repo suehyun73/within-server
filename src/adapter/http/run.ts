@@ -1,12 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { GlobalFilter } from './filter/global.filter';
 
 async function run() {
   const app = await NestFactory.create(AppModule);
 
   // 모든 api들이 "/api"로 시작
   app.setGlobalPrefix('api');
+
+  app.useGlobalFilters(new GlobalFilter());
 
   // dto를 체크하기 위한 class validator pipe
   app.useGlobalPipes(
