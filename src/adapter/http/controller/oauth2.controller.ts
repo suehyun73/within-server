@@ -1,4 +1,10 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { GoogleOauth2Guard } from '../auth/googleOauth2/googleOauth2.guard';
 

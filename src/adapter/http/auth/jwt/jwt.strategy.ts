@@ -8,7 +8,10 @@ import { z } from 'zod';
 
 // strategy : "어떻게" 인증을 해결할지
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtStrategy extends PassportStrategy(
+  Strategy,
+  'jwt',
+) {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

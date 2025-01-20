@@ -28,7 +28,9 @@ export class DbService {
     return this.db;
   }
 
-  async transaction<T>(callback: (tx: Db) => Promise<T>): Promise<T> {
+  async transaction<T>(
+    callback: (tx: Db) => Promise<T>,
+  ): Promise<T> {
     const db = this.getDb();
     return await db.transaction(callback);
   }

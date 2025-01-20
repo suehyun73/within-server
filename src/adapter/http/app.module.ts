@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { SaveUsecase } from 'src/usecase/layout/save.usecase';
+import { SaveLayoutUsecase } from 'src/usecase/layout/saveLayout.usecase';
 import { LayoutController } from './controller/layout.controller';
-import { SAVE_USECASE } from 'src/port/in/layout/save.usecase.port';
+import { SAVE_USECASE } from 'src/port/in/layout/saveLayout.usecase.port';
 import { DbService } from 'src/adapter/db/db.service';
 import { JwtModule } from '@nestjs/jwt';
 import { Ouath2Controller } from './controller/oauth2.controller';
@@ -11,10 +11,10 @@ import { GoogleOauth2Guard } from './auth/googleOauth2/googleOauth2.guard';
 import { JwtStrategy } from './auth/jwt/jwt.strategy';
 import { JwtGuard } from './auth/jwt/jwt.guard';
 import { RolesGuard } from './auth/roles/roles.guard';
-import { NodeRepo } from '../db/repo/node.repo';
+import { LayoutRepo } from '../db/repo/layout.repo';
 import { UserRepo } from '../db/repo/user.repo';
 import { USER_REPO } from 'src/port/out/repo/user.repo.port';
-import { NODE_REPO } from 'src/port/out/repo/node.repo.port';
+import { LAYOUT_REPO } from 'src/port/out/repo/layout.repo.port';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalFilter } from './filter/global.filter';
 
@@ -47,9 +47,9 @@ import { GlobalFilter } from './filter/global.filter';
     RolesGuard,
 
     { provide: USER_REPO, useClass: UserRepo },
-    { provide: NODE_REPO, useClass: NodeRepo },
+    { provide: LAYOUT_REPO, useClass: LayoutRepo },
 
-    { provide: SAVE_USECASE, useClass: SaveUsecase },
+    { provide: SAVE_USECASE, useClass: SaveLayoutUsecase },
   ],
 
   // 현재 모듈에서 다른 모듈이 사용할 수 있도록 외부로 노출하는 providers를 정의

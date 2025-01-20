@@ -6,11 +6,17 @@ import { Db } from 'src/shared/type/db.type';
 export const USER_REPO = Symbol('USER_REPO');
 
 export interface UserRepoPort {
-  save(user: User, db?: Db): Promise<User>;
+  saveUser(user: User, db?: Db): Promise<User>;
 
-  findOneById(id: Id, db?: Db): Promise<User | undefined>;
+  findUser(): {
+    byId(userId: Id, db?: Db): Promise<User | undefined>;
+    byGoogleId(
+      googleId: GoogleId,
+      db?: Db,
+    ): Promise<User | undefined>;
+  };
 
-  findOneByGoogleId(googleId: GoogleId, db?: Db): Promise<User | undefined>;
-
-  deleteById(userId: Id, db?: Db): Promise<void>;
+  deleteUser(): {
+    byId(userId: Id, db?: Db): Promise<void>;
+  };
 }

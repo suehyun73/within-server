@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Builder } from 'builder-pattern';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, InferSelectModel, isNull } from 'drizzle-orm';
 import { User } from 'src/domain/entity/user';
 import { Email } from 'src/domain/vo/email';
 import { GoogleId } from 'src/domain/vo/googleId';
@@ -17,7 +17,10 @@ import { userTable } from '../orm/schema';
 export class UserRepo implements UserRepoPort {
   constructor(private readonly dbService: DbService) {}
 
-  async save(user: User, db = this.dbService.getDb()): Promise<User> {
+  async saveUser(
+    user: User,
+    db = this.dbService.getDb(),
+  ): Promise<User> {
     const [row] = await db
       .insert(userTable)
       .values({
@@ -29,64 +32,74 @@ export class UserRepo implements UserRepoPort {
       })
       .returning();
 
+    return this.mapToUser(row);
+  }
+
+  findUser() {
+    return {
+      byId: async (
+        userId: Id,
+        db = this.dbService.getDb(),
+      ): Promise<User | undefined> => {
+        const row = await db.query.userTable.findFirst({
+          where: and(
+            eq(userTable.id, userId.value),
+            isNull(userTable.deletedAt),
+          ),
+        });
+
+        return row && this.mapToUser(row);
+      },
+
+      byGoogleId: async (
+        googleId: GoogleId,
+        db = this.dbService.getDb(),
+      ): Promise<User | undefined> => {
+        const row = await db.query.userTable.findFirst({
+          where: and(
+            eq(userTable.googleId, googleId.value),
+            isNull(userTable.deletedAt),
+          ),
+        });
+
+        return row && this.mapToUser(row);
+      },
+    };
+  }
+
+  deleteUser() {
+    return {
+      byId: async (
+        userId: Id,
+        db = this.dbService.getDb(),
+      ): Promise<void> => {
+        await db
+          .update(userTable)
+          .set({ deletedAt: Timestamp.now().value })
+          .where(
+            and(
+              eq(userTable.id, userId.value),
+              isNull(userTable.deletedAt),
+            ),
+          );
+      },
+    };
+  }
+
+  private mapToUser(
+    row: InferSelectModel<typeof userTable>,
+  ): User {
     return Builder(User)
       .id(Id.create(row.id))
       .googleId(GoogleId.create(row.googleId))
       .name(Name.create(row.name))
       .email(Email.create(row.email))
       .roles(row.roles.map((role) => Role.create(role)))
-      .profileUrl(row.profileUrl ? Url.create(row.profileUrl) : undefined)
+      .profileUrl(
+        row.profileUrl ? Url.create(row.profileUrl) : undefined,
+      )
       .createdAt(Timestamp.create(row.createdAt))
       .updatedAt(Timestamp.create(row.updatedAt))
       .build();
-  }
-
-  async findOneById(userId: Id, db = this.dbService.getDb()): Promise<User | undefined> {
-    const row = await db.query.userTable.findFirst({
-      columns: { deletedAt: false },
-      where: and(eq(userTable.id, userId.value), isNull(userTable.deletedAt)),
-    });
-
-    return (
-      row &&
-      Builder(User)
-        .id(Id.create(row.id))
-        .googleId(GoogleId.create(row.googleId))
-        .name(Name.create(row.name))
-        .email(Email.create(row.email))
-        .roles(row.roles.map((role) => Role.create(role)))
-        .profileUrl(row.profileUrl ? Url.create(row.profileUrl) : undefined)
-        .createdAt(Timestamp.create(row.createdAt))
-        .updatedAt(Timestamp.create(row.updatedAt))
-        .build()
-    );
-  }
-
-  async findOneByGoogleId(googleId: GoogleId, db = this.dbService.getDb()): Promise<User | undefined> {
-    const row = await db.query.userTable.findFirst({
-      columns: { deletedAt: false },
-      where: and(eq(userTable.googleId, googleId.value), isNull(userTable.deletedAt)),
-    });
-
-    return (
-      row &&
-      Builder(User)
-        .id(Id.create(row.id))
-        .googleId(GoogleId.create(row.googleId))
-        .name(Name.create(row.name))
-        .email(Email.create(row.email))
-        .roles(row.roles.map((role) => Role.create(role)))
-        .profileUrl(row.profileUrl ? Url.create(row.profileUrl) : undefined)
-        .createdAt(Timestamp.create(row.createdAt))
-        .updatedAt(Timestamp.create(row.updatedAt))
-        .build()
-    );
-  }
-
-  async deleteById(userId: Id, db = this.dbService.getDb()): Promise<void> {
-    await db
-      .update(userTable)
-      .set({ deletedAt: Timestamp.now().value })
-      .where(and(eq(userTable.id, userId.value), isNull(userTable.deletedAt)));
   }
 }
