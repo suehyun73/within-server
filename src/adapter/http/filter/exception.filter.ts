@@ -1,5 +1,5 @@
 import {
-  ExceptionFilter,
+  ExceptionFilter as IExceptionFilter,
   Catch,
   ArgumentsHost,
   HttpException,
@@ -8,7 +8,7 @@ import {
 import { Response } from 'express';
 
 @Catch()
-export class GlobalFilter implements ExceptionFilter {
+export class ExceptionFilter implements IExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SaveLayoutUsecase } from 'src/usecase/layout/saveLayout.usecase';
 import { LayoutController } from './controller/layout.controller';
-import { SAVE_USECASE } from 'src/port/in/layout/saveLayout.usecase.port';
+import { SAVE_LAYOUT_USECASE } from 'src/port/in/layout/saveLayout.usecase.port';
 import { DbService } from 'src/adapter/db/db.service';
 import { JwtModule } from '@nestjs/jwt';
 import { Ouath2Controller } from './controller/oauth2.controller';
@@ -16,7 +16,9 @@ import { UserRepo } from '../db/repo/user.repo';
 import { USER_REPO } from 'src/port/out/repo/user.repo.port';
 import { LAYOUT_REPO } from 'src/port/out/repo/layout.repo.port';
 import { APP_FILTER } from '@nestjs/core';
-import { GlobalFilter } from './filter/global.filter';
+import { ExceptionFilter } from './filter/exception.filter';
+import { GET_LAYOUT_USECASE } from 'src/port/in/layout/getLayout.usecase.port';
+import { GetLayoutUsecase } from 'src/usecase/layout/getLayout.usecase';
 
 @Module({
   // 현재 모듈에서 사용하려는 다른 모듈
@@ -36,8 +38,6 @@ import { GlobalFilter } from './filter/global.filter';
 
   // 모듈에서 사용할 서비스나 리포지토리 등의 의존성 주입 정의
   providers: [
-    { provide: APP_FILTER, useClass: GlobalFilter },
-
     DbService,
 
     GoogleOauth2Strategy,
@@ -49,7 +49,14 @@ import { GlobalFilter } from './filter/global.filter';
     { provide: USER_REPO, useClass: UserRepo },
     { provide: LAYOUT_REPO, useClass: LayoutRepo },
 
-    { provide: SAVE_USECASE, useClass: SaveLayoutUsecase },
+    {
+      provide: SAVE_LAYOUT_USECASE,
+      useClass: SaveLayoutUsecase,
+    },
+    {
+      provide: GET_LAYOUT_USECASE,
+      useClass: GetLayoutUsecase,
+    },
   ],
 
   // 현재 모듈에서 다른 모듈이 사용할 수 있도록 외부로 노출하는 providers를 정의

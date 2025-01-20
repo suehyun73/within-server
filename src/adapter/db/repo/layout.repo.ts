@@ -6,6 +6,7 @@ import {
   inArray,
   InferSelectModel,
   isNull,
+  or,
   sql,
 } from 'drizzle-orm';
 import { Node } from 'src/domain/entity/node';
@@ -108,9 +109,19 @@ export class LayoutRepo implements LayoutRepoPort {
         const result = await db.query.userTable.findFirst({
           with: {
             nodes: {
-              where: and(
-                eq(nodeTable.targetUrl, targetUrl.value),
-                isNull(nodeTable.deletedAt),
+              where: or(
+                and(
+                  eq(nodeTable.targetUrl, targetUrl.value),
+                  isNull(nodeTable.deletedAt),
+                ),
+                and(
+                  eq(
+                    nodeTable.domain,
+                    targetUrl.extract().domain,
+                  ),
+                  eq(nodeTable.scope, 'domain'),
+                  isNull(nodeTable.deletedAt),
+                ),
               ),
             },
             highlights: {

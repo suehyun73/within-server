@@ -1,5 +1,5 @@
 {
-  "id": "ff4597dd-64bb-4fa2-a7b9-383a290785bf",
+  "id": "444a5fde-4003-43f4-b12e-c8241335cd58",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -332,7 +332,6 @@
       "name": "scope",
       "schema": "public",
       "values": [
-        "global",
         "domain",
         "full-path"
       ]

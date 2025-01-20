@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export const SAVE_USECASE = Symbol('SAVE_USECASE');
+export const SAVE_LAYOUT_USECASE = Symbol('SAVE_LAYOUT_USECASE');
 
 export interface SaveLayoutUsecasePort {
   execute(
@@ -31,8 +31,8 @@ class Node {
   @IsString()
   markdown!: string;
 
-  @IsEnum(['global', 'domain', 'full-path'])
-  scope!: 'global' | 'domain' | 'full-path';
+  @IsEnum(['domain', 'full-path'])
+  scope!: 'domain' | 'full-path';
 
   @Type(() => Pos)
   @ValidateNested()

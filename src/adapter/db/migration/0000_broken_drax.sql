@@ -1,5 +1,5 @@
 CREATE TYPE "public"."role" AS ENUM('general', 'admin');--> statement-breakpoint
-CREATE TYPE "public"."scope" AS ENUM('global', 'domain', 'full-path');--> statement-breakpoint
+CREATE TYPE "public"."scope" AS ENUM('domain', 'full-path');--> statement-breakpoint
 CREATE TABLE "highlight_table" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,

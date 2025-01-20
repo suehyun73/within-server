@@ -13,7 +13,6 @@ import {
 
 export const roleEnum = pgEnum('role', ['general', 'admin']);
 export const scopeEnum = pgEnum('scope', [
-  'global',
   'domain',
   'full-path',
 ]);

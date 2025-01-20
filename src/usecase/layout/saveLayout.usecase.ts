@@ -32,9 +32,9 @@ export class SaveLayoutUsecase implements SaveLayoutUsecasePort {
     dto: SaveLayoutDtoIn,
     client: Client,
   ): Promise<SaveLayoutDtoOut> {
+    // dto를 엔티티로 변환
     const url = Url.create(dto.url);
 
-    // dto를 엔티티로 변환
     const incomingNodes = dto.nodes.map((node) =>
       Builder(Node)
         .localId(LocalId.create(node.localId))

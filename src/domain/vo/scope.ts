@@ -2,9 +2,11 @@ import { BadRequestException } from '@nestjs/common';
 import { z } from 'zod';
 
 export class Scope {
-  static schema = z.enum(['global', 'domain', 'full-path']);
+  static schema = z.enum(['domain', 'full-path']);
 
-  private constructor(public readonly value: z.infer<typeof Scope.schema>) {}
+  private constructor(
+    public readonly value: z.infer<typeof Scope.schema>,
+  ) {}
 
   static isValid(value: z.infer<typeof Scope.schema>) {
     try {
