@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Builder } from 'builder-pattern';
-import { DbService } from 'src/adapter/db/db.service';
 import { Highlight } from 'src/domain/entity/highlight';
 import { Node } from 'src/domain/entity/node';
 import { LocalId } from 'src/domain/vo/localId';
@@ -16,14 +15,19 @@ import {
   SaveLayoutUsecasePort,
 } from 'src/port/in/layout/saveLayout.usecase.port';
 import {
+  DB_SERVICE,
+  DbServicePort,
+} from 'src/port/out/db.service.port';
+import {
   LAYOUT_REPO,
   LayoutRepoPort,
-} from 'src/port/out/repo/layout.repo.port';
+} from 'src/port/out/layout.repo.port';
 
 @Injectable()
 export class SaveLayoutUsecase implements SaveLayoutUsecasePort {
   constructor(
-    private readonly dbService: DbService,
+    @Inject(DB_SERVICE)
+    private readonly dbService: DbServicePort,
     @Inject(LAYOUT_REPO)
     private readonly layoutRepo: LayoutRepoPort,
   ) {}

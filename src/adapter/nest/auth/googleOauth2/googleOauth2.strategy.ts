@@ -8,7 +8,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import {
   UserRepoPort,
   USER_REPO,
-} from 'src/port/out/repo/user.repo.port';
+} from 'src/port/out/user.repo.port';
 import { GoogleId } from 'src/domain/vo/googleId';
 import { Name } from 'src/domain/vo/name';
 import { Url } from 'src/domain/vo/url';

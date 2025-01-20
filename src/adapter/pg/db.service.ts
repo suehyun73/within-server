@@ -4,9 +4,10 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from './orm/schema';
 import { Pool } from 'pg';
 import { Db } from 'src/shared/type/db.type';
+import { DbServicePort } from 'src/port/out/db.service.port';
 
 @Injectable()
-export class DbService {
+export class DbService implements DbServicePort {
   private readonly pool: Pool;
   private readonly db: Db;
 

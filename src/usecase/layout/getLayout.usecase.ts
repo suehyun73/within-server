@@ -13,7 +13,7 @@ import {
 import {
   LAYOUT_REPO,
   LayoutRepoPort,
-} from 'src/port/out/repo/layout.repo.port';
+} from 'src/port/out/layout.repo.port';
 
 @Injectable()
 export class GetLayoutUsecase implements GetLayoutUsecasePort {

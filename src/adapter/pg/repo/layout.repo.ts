@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Builder } from 'builder-pattern';
 import {
   and,
@@ -17,8 +17,7 @@ import { Pos } from 'src/domain/vo/pos';
 import { Scope } from 'src/domain/vo/scope';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
-import { LayoutRepoPort } from 'src/port/out/repo/layout.repo.port';
-import { DbService } from '../db.service';
+import { LayoutRepoPort } from 'src/port/out/layout.repo.port';
 import {
   highlightTable,
   nodeTable,
@@ -27,10 +26,17 @@ import {
 import { Highlight } from 'src/domain/entity/highlight';
 import { Selector } from 'src/domain/vo/selector';
 import { Span } from 'src/domain/vo/span';
+import {
+  DB_SERVICE,
+  DbServicePort,
+} from 'src/port/out/db.service.port';
 
 @Injectable()
 export class LayoutRepo implements LayoutRepoPort {
-  constructor(private readonly dbService: DbService) {}
+  constructor(
+    @Inject(DB_SERVICE)
+    private readonly dbService: DbServicePort,
+  ) {}
 
   async upsertNodes(
     nodes: Node[],
