@@ -1,4 +1,4 @@
-import { isNull, relations } from 'drizzle-orm';
+import { isNull, relations, sql } from 'drizzle-orm';
 import {
   integer,
   json,
@@ -48,6 +48,10 @@ export const nodeTable = pgTable(
     posY: integer('pos_y').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    markdownUpdatedAt: timestamp('markdown_updated_at')
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),

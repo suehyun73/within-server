@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Builder } from 'builder-pattern';
 import {
   and,
+  between,
   eq,
   inArray,
   InferSelectModel,
@@ -68,6 +69,12 @@ export class LayoutRepo implements LayoutRepoPort {
           posX: sql`excluded.pos_x`,
           posY: sql`excluded.pos_y`,
           scope: sql`excluded.scope`,
+          markdownUpdatedAt: sql`
+            CASE
+              WHEN excluded.markdown <> ${nodeTable.markdown} THEN CURRENT_TIMESTAMP
+              ELSE ${nodeTable.markdownUpdatedAt}
+            END
+          `,
         },
       })
       .returning();
@@ -189,6 +196,24 @@ export class LayoutRepo implements LayoutRepoPort {
 
         return this.mapToNodes(rows);
       },
+      byMarkdownUpdatedBetween: async (
+        from: Timestamp,
+        to: Timestamp,
+        db = this.dbService.getDb(),
+      ): Promise<Node[]> => {
+        const rows = await db.query.nodeTable.findMany({
+          where: and(
+            between(
+              nodeTable.markdownUpdatedAt,
+              from.value,
+              to.value,
+            ),
+            isNull(nodeTable.deletedAt),
+          ),
+        });
+
+        return this.mapToNodes(rows);
+      },
     };
   }
 
@@ -218,6 +243,24 @@ export class LayoutRepo implements LayoutRepoPort {
             inArray(
               highlightTable.id,
               ids.map((id) => id.value),
+            ),
+            isNull(highlightTable.deletedAt),
+          ),
+        });
+
+        return this.mapToHighlights(rows);
+      },
+      bySpansUpdatedBetween: async (
+        from: Timestamp,
+        to: Timestamp,
+        db = this.dbService.getDb(),
+      ): Promise<Highlight[]> => {
+        const rows = await db.query.highlightTable.findMany({
+          where: and(
+            between(
+              highlightTable.updatedAt,
+              from.value,
+              to.value,
             ),
             isNull(highlightTable.deletedAt),
           ),
@@ -286,6 +329,9 @@ export class LayoutRepo implements LayoutRepoPort {
         .scope(Scope.create(row.scope))
         .createdAt(Timestamp.create(row.createdAt))
         .updatedAt(Timestamp.create(row.updatedAt))
+        .markdownUpdatedAt(
+          Timestamp.create(row.markdownUpdatedAt),
+        )
         .build(),
     );
   }

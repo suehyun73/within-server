@@ -1,6 +1,7 @@
 import { Highlight } from 'src/domain/entity/highlight';
 import { Node } from 'src/domain/entity/node';
 import { Id } from 'src/domain/vo/id';
+import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
 import { Db } from 'src/shared/type/db.type';
 
@@ -30,8 +31,13 @@ export interface LayoutRepoPort {
       targetUrl: Url,
       userId: Id,
       db?: Db,
-    ): Promise<Node[]>; // 수정
-    byIds(ids: Id[], db?: Db): Promise<Node[]>; // 수정
+    ): Promise<Node[]>;
+    byIds(ids: Id[], db?: Db): Promise<Node[]>;
+    byMarkdownUpdatedBetween(
+      from: Timestamp,
+      to: Timestamp,
+      db?: Db,
+    ): Promise<Node[]>;
   };
 
   findHighlights(): {
@@ -39,15 +45,20 @@ export interface LayoutRepoPort {
       targetUrl: Url,
       userId: Id,
       db?: Db,
-    ): Promise<Highlight[]>; // 수정
-    byIds(ids: Id[], db?: Db): Promise<Highlight[]>; // 수정
+    ): Promise<Highlight[]>;
+    byIds(ids: Id[], db?: Db): Promise<Highlight[]>;
+    bySpansUpdatedBetween(
+      from: Timestamp,
+      to: Timestamp,
+      db?: Db,
+    ): Promise<Highlight[]>;
   };
 
   deleteNodes(): {
-    byIds(ids: Id[], db?: Db): Promise<void>; // 수정
+    byIds(ids: Id[], db?: Db): Promise<void>;
   };
 
   deleteHighlights(): {
-    byIds(ids: Id[], db?: Db): Promise<void>; // 수정
+    byIds(ids: Id[], db?: Db): Promise<void>;
   };
 }

@@ -13,6 +13,8 @@ import { RolesGuard } from './auth/roles/roles.guard';
 import { GET_LAYOUT_USECASE } from 'src/port/in/layout/getLayout.usecase.port';
 import { GetLayoutUsecase } from 'src/usecase/layout/getLayout.usecase';
 import { DbModule } from '../db/db.module';
+import { EsModule } from '../es/es.module';
+import { SchedulerModule } from '../scheduler/scheduler.module';
 
 @Module({
   // 현재 모듈에서 사용하려는 다른 모듈
@@ -28,6 +30,8 @@ import { DbModule } from '../db/db.module';
       inject: [ConfigService], // 위의 configService 파라미터에 주입될 의존성
     }),
     DbModule,
+    EsModule,
+    SchedulerModule,
   ],
   controllers: [LayoutController, Ouath2Controller],
 

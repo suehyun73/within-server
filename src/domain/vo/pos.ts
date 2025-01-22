@@ -7,7 +7,9 @@ export class Pos {
     y: z.number(),
   });
 
-  private constructor(readonly value: z.infer<typeof Pos.schema>) {}
+  private constructor(
+    readonly value: z.infer<typeof Pos.schema>,
+  ) {}
 
   static isValid(value: z.infer<typeof Pos.schema>) {
     try {

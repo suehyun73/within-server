@@ -16,5 +16,6 @@ export class Node {
   scope!: Scope;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
+  markdownUpdatedAt?: Timestamp;
   deletedAt?: Timestamp;
 }

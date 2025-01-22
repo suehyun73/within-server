@@ -4,7 +4,9 @@ import { z } from 'zod';
 export class Url {
   static schema = z.string().url();
 
-  private constructor(public readonly value: z.infer<typeof Url.schema>) {}
+  private constructor(
+    public readonly value: z.infer<typeof Url.schema>,
+  ) {}
 
   static isValid(value: z.infer<typeof Url.schema>) {
     try {

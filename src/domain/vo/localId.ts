@@ -4,7 +4,9 @@ import { z } from 'zod';
 export class LocalId {
   static schema = z.string();
 
-  private constructor(readonly value: z.infer<typeof LocalId.schema>) {}
+  private constructor(
+    readonly value: z.infer<typeof LocalId.schema>,
+  ) {}
 
   static isValid(value: z.infer<typeof LocalId.schema>) {
     try {

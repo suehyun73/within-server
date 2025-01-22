@@ -4,7 +4,9 @@ import { z } from 'zod';
 export class Markdown {
   static schema = z.string();
 
-  private constructor(readonly value: z.infer<typeof Markdown.schema>) {}
+  private constructor(
+    readonly value: z.infer<typeof Markdown.schema>,
+  ) {}
 
   static isValid(value: z.infer<typeof Markdown.schema>) {
     try {
@@ -16,7 +18,8 @@ export class Markdown {
   }
 
   static create(value: z.infer<typeof Markdown.schema>) {
-    if (!Markdown.isValid(value)) throw new BadRequestException();
+    if (!Markdown.isValid(value))
+      throw new BadRequestException();
     return new Markdown(value);
   }
 }

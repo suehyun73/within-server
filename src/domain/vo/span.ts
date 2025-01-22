@@ -7,7 +7,9 @@ export class Span {
     text: z.string(),
   });
 
-  private constructor(readonly value: z.infer<typeof Span.schema>) {}
+  private constructor(
+    readonly value: z.infer<typeof Span.schema>,
+  ) {}
 
   static isValid(value: z.infer<typeof Span.schema>) {
     try {

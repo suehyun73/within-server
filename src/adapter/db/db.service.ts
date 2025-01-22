@@ -15,8 +15,8 @@ export class DbService implements DbServicePort {
     this.pool = new Pool({
       user: this.configService.getOrThrow('PG_USER'),
       password: this.configService.getOrThrow('PG_PW'),
-      host: 'pg',
-      port: 5432,
+      host: this.configService.getOrThrow('PG_HOST'),
+      port: this.configService.getOrThrow('PG_PORT'),
       database: this.configService.getOrThrow('PG_DB'),
     });
 

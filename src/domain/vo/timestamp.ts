@@ -18,7 +18,8 @@ export class Timestamp {
   }
 
   static create(value: z.infer<typeof Timestamp.schema>) {
-    if (!Timestamp.isValid(value)) throw new BadRequestException();
+    if (!Timestamp.isValid(value))
+      throw new BadRequestException();
     return new Timestamp(value);
   }
 

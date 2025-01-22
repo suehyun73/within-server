@@ -13,6 +13,12 @@ export class ExceptionFilter implements IExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
 
+    console.error('Exception caught:', {
+      error: exception,
+      stack:
+        exception instanceof Error ? exception.stack : undefined,
+    });
+
     const message =
       exception instanceof HttpException
         ? (exception.getResponse() as { message: string })

@@ -4,7 +4,9 @@ import { z } from 'zod';
 export class GoogleId {
   static schema = z.string();
 
-  private constructor(readonly value: z.infer<typeof GoogleId.schema>) {}
+  private constructor(
+    readonly value: z.infer<typeof GoogleId.schema>,
+  ) {}
 
   static isValid(value: z.infer<typeof GoogleId.schema>) {
     try {
@@ -16,7 +18,8 @@ export class GoogleId {
   }
 
   static create(value: z.infer<typeof GoogleId.schema>) {
-    if (!GoogleId.isValid(value)) throw new BadRequestException();
+    if (!GoogleId.isValid(value))
+      throw new BadRequestException();
     return new GoogleId(value);
   }
 }

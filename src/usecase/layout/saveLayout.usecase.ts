@@ -70,27 +70,24 @@ export class SaveLayoutUsecase implements SaveLayoutUsecasePort {
       .byTargetUrlUserId(url, client.id);
 
     // 삭제할 node id와 highlight id 추출
-    const nodeIdsToDelete = existingNodes
-      .filter(
-        (existingNode) =>
-          !incomingNodes.some(
-            (incomingNode) =>
-              incomingNode.localId.value ===
-              existingNode.localId.value,
-          ),
-      )
-      .map((node) => node.id!);
+    const nodeIdsToDelete = this.getNodeIdsToDelete(
+      existingNodes,
+      incomingNodes,
+    );
+    const highlightIdsToDelete = this.getHighlightIdsToDelete(
+      existingHighlights,
+      incomingHighlights,
+    );
 
-    const highlightIdsToDelete = existingHighlights
-      .filter(
-        (existingHighlight) =>
-          !incomingHighlights.some(
-            (incomingHighlight) =>
-              incomingHighlight.selector.value ===
-              existingHighlight.selector.value,
-          ),
-      )
-      .map((highlight) => highlight.id!);
+    // 변경사항이 있거나 새롭게 추가된 node와 highlight만 추출
+    const nodesToUpsert = this.getNodesToUpsert(
+      existingNodes,
+      incomingNodes,
+    );
+    const highlightsToUpsert = this.getHighlightsToUpsert(
+      existingHighlights,
+      incomingHighlights,
+    );
 
     // 트랜잭션 처리
     await this.dbService.transaction(async (tx) => {
@@ -110,11 +107,104 @@ export class SaveLayoutUsecase implements SaveLayoutUsecasePort {
 
       // upsert 작업들을 병렬로 처리
       await Promise.all([
-        this.layoutRepo.upsertNodes(incomingNodes, tx),
-        this.layoutRepo.upsertHighlights(incomingHighlights, tx),
+        nodesToUpsert.length > 0
+          ? this.layoutRepo.upsertNodes(nodesToUpsert, tx)
+          : Promise.resolve(),
+        highlightsToUpsert.length > 0
+          ? this.layoutRepo.upsertHighlights(
+              highlightsToUpsert,
+              tx,
+            )
+          : Promise.resolve(),
       ]);
     });
 
     return Builder(SaveLayoutDtoOut).build();
+  }
+
+  private getHighlightsToUpsert(
+    existingHighlights: Highlight[],
+    incomingHighlights: Highlight[],
+  ) {
+    return incomingHighlights.filter((incomingHighlight) => {
+      const existingHighlight = existingHighlights.find(
+        (highlight) =>
+          highlight.selector.value ===
+          incomingHighlight.selector.value,
+      );
+
+      // 새로운 highlight는 포함
+      if (!existingHighlight) return true;
+
+      // spans의 변경사항이 있는지 확인
+      return (
+        incomingHighlight.spans.length !==
+          existingHighlight.spans.length ||
+        incomingHighlight.spans.some((incomingSpan, index) => {
+          const existingSpan = existingHighlight.spans[index];
+          return (
+            incomingSpan.value.start !==
+              existingSpan.value.start ||
+            incomingSpan.value.text !== existingSpan.value.text
+          );
+        })
+      );
+    });
+  }
+
+  private getNodesToUpsert(
+    existingNodes: Node[],
+    incomingNodes: Node[],
+  ) {
+    return incomingNodes.filter((incomingNode) => {
+      const existingNode = existingNodes.find(
+        (node) =>
+          node.localId.value === incomingNode.localId.value,
+      );
+
+      // 새로운 node는 포함
+      if (!existingNode) return true;
+
+      // 기존 node와 비교하여 변경사항이 있는지 확인
+      return (
+        existingNode.markdown.value !==
+          incomingNode.markdown.value ||
+        existingNode.scope.value !== incomingNode.scope.value ||
+        existingNode.pos.value.x !== incomingNode.pos.value.x ||
+        existingNode.pos.value.y !== incomingNode.pos.value.y
+      );
+    });
+  }
+
+  private getHighlightIdsToDelete(
+    existingHighlights: Highlight[],
+    incomingHighlights: Highlight[],
+  ) {
+    return existingHighlights
+      .filter(
+        (existingHighlight) =>
+          !incomingHighlights.some(
+            (incomingHighlight) =>
+              incomingHighlight.selector.value ===
+              existingHighlight.selector.value,
+          ),
+      )
+      .map((highlight) => highlight.id!);
+  }
+
+  private getNodeIdsToDelete(
+    existingNodes: Node[],
+    incomingNodes: Node[],
+  ) {
+    return existingNodes
+      .filter(
+        (existingNode) =>
+          !incomingNodes.some(
+            (incomingNode) =>
+              incomingNode.localId.value ===
+              existingNode.localId.value,
+          ),
+      )
+      .map((node) => node.id!);
   }
 }

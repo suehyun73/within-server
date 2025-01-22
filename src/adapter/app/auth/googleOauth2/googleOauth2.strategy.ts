@@ -40,13 +40,6 @@ export class GoogleOauth2Strategy extends PassportStrategy(
     });
   }
 
-  /**
-   * Google OAuth 인증 후 사용자 검증 및 JWT 토큰 발급
-   * @param accessToken Google OAuth 액세스 토큰
-   * @param refreshToken Google OAuth 리프레시 토큰
-   * @param profile Google 사용자 프로필
-   * @param done Passport 검증 콜백
-   */
   async validate(
     accessToken: string,
     refreshToken: string,

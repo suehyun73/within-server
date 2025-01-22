@@ -4,7 +4,9 @@ import { z } from 'zod';
 export class Selector {
   static schema = z.string();
 
-  private constructor(readonly value: z.infer<typeof Selector.schema>) {}
+  private constructor(
+    readonly value: z.infer<typeof Selector.schema>,
+  ) {}
 
   static isValid(value: z.infer<typeof Selector.schema>) {
     try {
@@ -16,7 +18,8 @@ export class Selector {
   }
 
   static create(value: z.infer<typeof Selector.schema>) {
-    if (!Selector.isValid(value)) throw new BadRequestException();
+    if (!Selector.isValid(value))
+      throw new BadRequestException();
     return new Selector(value);
   }
 }

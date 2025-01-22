@@ -4,7 +4,9 @@ import { z } from 'zod';
 export class Id {
   static schema = z.number();
 
-  private constructor(readonly value: z.infer<typeof Id.schema>) {}
+  private constructor(
+    readonly value: z.infer<typeof Id.schema>,
+  ) {}
 
   static isValid(value: z.infer<typeof Id.schema>) {
     try {

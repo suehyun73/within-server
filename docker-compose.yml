@@ -6,19 +6,10 @@ services:
     volumes:
       - .:/app
     ports:
-      - 3000:3000
+      - ${APP_PORT}:${APP_PORT}
     depends_on:
       - db
-
-  scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile.scheduler
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-    attach: false
+      - es
 
   db:
     image: postgres:17-alpine
@@ -27,5 +18,21 @@ services:
       - POSTGRES_PASSWORD=${PG_PW}
       - POSTGRES_DB=${PG_DB}
     ports:
-      - 5432:5432
+      - ${PG_PORT}:5432
+    attach: false
+
+  es:
+    image: elasticsearch:8.12.1
+    environment:
+      - xpack.security.enabled=false
+      - ELASTIC_PASSWORD=${ES_PW}
+      - discovery.type=single-node
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    ports:
+      - ${ES_PORT}:9200
+    command: >
+      bash -c '
+        bin/elasticsearch-plugin install analysis-nori;
+        /usr/local/bin/docker-entrypoint.sh elasticsearch
+      '
     attach: false
