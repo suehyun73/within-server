@@ -56,7 +56,9 @@ export class SaveLayoutUsecase implements SaveLayoutUsecasePort {
         .targetUrl(url)
         .selector(Selector.create(highlight.selector))
         .spans(highlight.spans.map((span) => Span.create(span)))
-        .build(),
+        .build()
+        // span에서 겹치는 부분 병합 처리
+        .mergeSpans(),
     );
 
     // 기존 데이터 조회
@@ -92,23 +94,25 @@ export class SaveLayoutUsecase implements SaveLayoutUsecasePort {
 
     // 트랜잭션 처리
     await this.dbService.transaction(async (tx) => {
-      if (nodeIdsToDelete.length > 0) {
-        await this.layoutRepo
-          .deleteNodes()
-          .byIds(nodeIdsToDelete, tx);
-      }
+      // 삭제 작업들을 병렬로 처리
+      await Promise.all([
+        nodeIdsToDelete.length > 0
+          ? this.layoutRepo
+              .deleteNodes()
+              .byIds(nodeIdsToDelete, tx)
+          : Promise.resolve(),
+        highlightIdsToDelete.length > 0
+          ? this.layoutRepo
+              .deleteHighlights()
+              .byIds(highlightIdsToDelete, tx)
+          : Promise.resolve(),
+      ]);
 
-      if (highlightIdsToDelete.length > 0) {
-        await this.layoutRepo
-          .deleteHighlights()
-          .byIds(highlightIdsToDelete, tx);
-      }
-
-      await this.layoutRepo.upsertNodes(incomingNodes, tx);
-      await this.layoutRepo.upsertHighlights(
-        incomingHighlights,
-        tx,
-      );
+      // upsert 작업들을 병렬로 처리
+      await Promise.all([
+        this.layoutRepo.upsertNodes(incomingNodes, tx),
+        this.layoutRepo.upsertHighlights(incomingHighlights, tx),
+      ]);
     });
 
     return Builder(SaveLayoutDtoOut).build();
