@@ -21,8 +21,6 @@ export class DbService implements DbServicePort {
     });
 
     this.db = drizzle(this.pool, { schema });
-
-    this.db = drizzle({ schema, client: this.pool });
   }
 
   getDb() {

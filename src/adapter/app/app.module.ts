@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SaveLayoutUsecase } from 'src/usecase/layout/saveLayout.usecase';
 import { LayoutController } from './controller/layout.controller';
 import { SAVE_LAYOUT_USECASE } from 'src/port/in/layout/saveLayout.usecase.port';
-import { DbService } from 'src/adapter/pg/db.service';
 import { JwtModule } from '@nestjs/jwt';
 import { Ouath2Controller } from './controller/oauth2.controller';
 import { GoogleOauth2Strategy } from './auth/googleOauth2/googleOauth2.strategy';
@@ -11,13 +10,9 @@ import { GoogleOauth2Guard } from './auth/googleOauth2/googleOauth2.guard';
 import { JwtStrategy } from './auth/jwt/jwt.strategy';
 import { JwtGuard } from './auth/jwt/jwt.guard';
 import { RolesGuard } from './auth/roles/roles.guard';
-import { LayoutRepo } from '../pg/repo/layout.repo';
-import { UserRepo } from '../pg/repo/user.repo';
-import { USER_REPO } from 'src/port/out/user.repo.port';
-import { LAYOUT_REPO } from 'src/port/out/layout.repo.port';
 import { GET_LAYOUT_USECASE } from 'src/port/in/layout/getLayout.usecase.port';
 import { GetLayoutUsecase } from 'src/usecase/layout/getLayout.usecase';
-import { DB_SERVICE } from 'src/port/out/db.service.port';
+import { DbModule } from '../db/db.module';
 
 @Module({
   // 현재 모듈에서 사용하려는 다른 모듈
@@ -32,6 +27,7 @@ import { DB_SERVICE } from 'src/port/out/db.service.port';
       }),
       inject: [ConfigService], // 위의 configService 파라미터에 주입될 의존성
     }),
+    DbModule,
   ],
   controllers: [LayoutController, Ouath2Controller],
 
@@ -42,12 +38,6 @@ import { DB_SERVICE } from 'src/port/out/db.service.port';
     JwtStrategy,
     JwtGuard,
     RolesGuard,
-
-    { provide: DB_SERVICE, useClass: DbService },
-
-    { provide: USER_REPO, useClass: UserRepo },
-    { provide: LAYOUT_REPO, useClass: LayoutRepo },
-
     {
       provide: SAVE_LAYOUT_USECASE,
       useClass: SaveLayoutUsecase,

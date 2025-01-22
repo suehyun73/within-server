@@ -1,14 +1,26 @@
 services:
-  server:
-    build: .
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
     volumes:
       - .:/app
     ports:
       - 3000:3000
     depends_on:
-      - pg
+      - db
 
-  pg:
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.scheduler
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    attach: false
+
+  db:
     image: postgres:17-alpine
     environment:
       - POSTGRES_USER=${PG_USER}
