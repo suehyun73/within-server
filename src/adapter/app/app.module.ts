@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { SaveLayoutUsecase } from 'src/usecase/layout/saveLayout.usecase';
-import { LayoutController } from './controller/layout.controller';
-import { SAVE_LAYOUT_USECASE } from 'src/port/in/layout/saveLayout.usecase.port';
+import { SaveNodesUsecase } from 'src/usecase/node/saveNodes.usecase';
+import { NodeController } from './controller/node.controller';
+import { SAVE_NODES_USECASE } from 'src/port/in/node/saveNodes.usecase.port';
 import { JwtModule } from '@nestjs/jwt';
 import { Ouath2Controller } from './controller/oauth2.controller';
 import { GoogleOauth2Strategy } from './auth/googleOauth2/googleOauth2.strategy';
@@ -10,11 +10,13 @@ import { GoogleOauth2Guard } from './auth/googleOauth2/googleOauth2.guard';
 import { JwtStrategy } from './auth/jwt/jwt.strategy';
 import { JwtGuard } from './auth/jwt/jwt.guard';
 import { RolesGuard } from './auth/roles/roles.guard';
-import { GET_LAYOUT_USECASE } from 'src/port/in/layout/getLayout.usecase.port';
-import { GetLayoutUsecase } from 'src/usecase/layout/getLayout.usecase';
+import { GET_NODES_USECASE } from 'src/port/in/node/getNodes.usecase.port';
+import { GetNodesUsecase } from 'src/usecase/node/getNodes.usecase';
 import { DbModule } from '../db/db.module';
 import { EsModule } from '../es/es.module';
 import { SchedulerModule } from '../scheduler/scheduler.module';
+import { SEARCH_NODES_USECASE } from 'src/port/in/node/searchNodes.usecase.port';
+import { SearchNodesUsecase } from 'src/usecase/node/searchNodes.usecase';
 
 @Module({
   // 현재 모듈에서 사용하려는 다른 모듈
@@ -33,7 +35,7 @@ import { SchedulerModule } from '../scheduler/scheduler.module';
     EsModule,
     SchedulerModule,
   ],
-  controllers: [LayoutController, Ouath2Controller],
+  controllers: [NodeController, Ouath2Controller],
 
   // 모듈에서 사용할 서비스나 리포지토리 등의 의존성 주입 정의
   providers: [
@@ -43,12 +45,16 @@ import { SchedulerModule } from '../scheduler/scheduler.module';
     JwtGuard,
     RolesGuard,
     {
-      provide: SAVE_LAYOUT_USECASE,
-      useClass: SaveLayoutUsecase,
+      provide: SAVE_NODES_USECASE,
+      useClass: SaveNodesUsecase,
     },
     {
-      provide: GET_LAYOUT_USECASE,
-      useClass: GetLayoutUsecase,
+      provide: GET_NODES_USECASE,
+      useClass: GetNodesUsecase,
+    },
+    {
+      provide: SEARCH_NODES_USECASE,
+      useClass: SearchNodesUsecase,
     },
   ],
 

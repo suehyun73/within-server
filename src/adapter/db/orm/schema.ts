@@ -1,4 +1,4 @@
-import { isNull, relations, sql } from 'drizzle-orm';
+import { isNull, relations } from 'drizzle-orm';
 import {
   integer,
   json,
@@ -32,8 +32,8 @@ export const userTable = pgTable('user_table', {
   deletedAt: timestamp('deleted_at'),
 });
 
-export const nodeTable = pgTable(
-  'node_table',
+export const memoTable = pgTable(
+  'memo_table',
   {
     id: serial('id').primaryKey(),
     localId: varchar('local_id').notNull(),
@@ -58,7 +58,7 @@ export const nodeTable = pgTable(
     deletedAt: timestamp('deleted_at'),
   },
   (table) => ({
-    idx: uniqueIndex('local_id_user_id_target_url_nodes_idx')
+    idx: uniqueIndex('local_id_user_id_target_url_memo_idx')
       .on(table.localId, table.userId, table.targetUrl)
       .where(isNull(table.deletedAt)),
   }),
@@ -96,14 +96,14 @@ export const highlightTable = pgTable(
 export const userRelations = relations(
   userTable,
   ({ many }) => ({
-    nodes: many(nodeTable),
+    memos: many(memoTable),
     highlights: many(highlightTable),
   }),
 );
 
-export const nodeRelations = relations(nodeTable, ({ one }) => ({
+export const memoRelations = relations(memoTable, ({ one }) => ({
   user: one(userTable, {
-    fields: [nodeTable.userId],
+    fields: [memoTable.userId],
     references: [userTable.id],
   }),
 }));

@@ -1,5 +1,5 @@
 {
-  "id": "444a5fde-4003-43f4-b12e-c8241335cd58",
+  "id": "94dd14f5-14f6-476e-bc72-053dbdfd34f3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -110,8 +110,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.node_table": {
-      "name": "node_table",
+    "public.memo_table": {
+      "name": "memo_table",
       "schema": "",
       "columns": {
         "id": {
@@ -183,6 +183,13 @@
           "notNull": true,
           "default": "now()"
         },
+        "markdown_updated_at": {
+          "name": "markdown_updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
         "deleted_at": {
           "name": "deleted_at",
           "type": "timestamp",
@@ -191,8 +198,8 @@
         }
       },
       "indexes": {
-        "local_id_user_id_target_url_nodes_idx": {
-          "name": "local_id_user_id_target_url_nodes_idx",
+        "local_id_user_id_target_url_memo_idx": {
+          "name": "local_id_user_id_target_url_memo_idx",
           "columns": [
             {
               "expression": "local_id",
@@ -214,16 +221,16 @@
             }
           ],
           "isUnique": true,
-          "where": "\"node_table\".\"deleted_at\" is null",
+          "where": "\"memo_table\".\"deleted_at\" is null",
           "concurrently": false,
           "method": "btree",
           "with": {}
         }
       },
       "foreignKeys": {
-        "node_table_user_id_user_table_id_fk": {
-          "name": "node_table_user_id_user_table_id_fk",
-          "tableFrom": "node_table",
+        "memo_table_user_id_user_table_id_fk": {
+          "name": "memo_table_user_id_user_table_id_fk",
+          "tableFrom": "memo_table",
           "tableTo": "user_table",
           "columnsFrom": [
             "user_id"

@@ -7,13 +7,13 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export const SAVE_LAYOUT_USECASE = Symbol('SAVE_LAYOUT_USECASE');
+export const SAVE_NODES_USECASE = Symbol('SAVE_NODES_USECASE');
 
-export interface SaveLayoutUsecasePort {
+export interface SaveNodesUsecasePort {
   execute(
-    dto: SaveLayoutDtoIn,
+    dto: SaveNodesDtoIn,
     client: Client,
-  ): Promise<SaveLayoutDtoOut>;
+  ): Promise<SaveNodesDtoOut>;
 }
 
 class Pos {
@@ -24,7 +24,7 @@ class Pos {
   y!: number;
 }
 
-class Node {
+class Memo {
   @IsString()
   localId!: string;
 
@@ -57,14 +57,14 @@ class Highlight {
   spans!: Span[];
 }
 
-export class SaveLayoutDtoIn {
+export class SaveNodesDtoIn {
   @IsString()
   url!: string;
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => Node)
-  nodes!: Node[];
+  @Type(() => Memo)
+  memos!: Memo[];
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -72,4 +72,4 @@ export class SaveLayoutDtoIn {
   highlights!: Highlight[];
 }
 
-export class SaveLayoutDtoOut {}
+export class SaveNodesDtoOut {}

@@ -9,12 +9,12 @@ import { Name } from 'src/domain/vo/name';
 import { Role } from 'src/domain/vo/role';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
-import { UserRepoPort } from 'src/port/out/user.repo.port';
+import { UserRepoPort } from 'src/port/out/db/user.repo.port';
 import { userTable } from '../orm/schema';
 import {
   DB_SERVICE,
   DbServicePort,
-} from 'src/port/out/db.service.port';
+} from 'src/port/out/db/db.service.port';
 
 @Injectable()
 export class UserRepo implements UserRepoPort {

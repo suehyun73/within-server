@@ -3,13 +3,19 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import {
-  LAYOUT_DOC_REPO,
-  LayoutDocRepoPort,
-} from 'src/port/out/layoutDoc.repo.port';
+  NODE_REPO,
+  NodeRepoPort,
+} from 'src/port/out/db/node.repo.port';
 import {
-  LAYOUT_REPO,
-  LayoutRepoPort,
-} from 'src/port/out/layout.repo.port';
+  MEMO_DOC_REPO,
+  MemoDocRepoPort,
+} from 'src/port/out/es/memoDoc.repo.port';
+import {
+  HIGHLIGHT_DOC_REPO,
+  HighlightDocRepoPort,
+} from 'src/port/out/es/highlightDoc.repo.port';
+
+type NodeType = 'memo' | 'highlight';
 
 @Injectable()
 export class SchedulerService {
@@ -17,15 +23,15 @@ export class SchedulerService {
 
   constructor(
     private readonly configService: ConfigService,
-    @Inject(LAYOUT_REPO)
-    private readonly layoutRepo: LayoutRepoPort,
-    @Inject(LAYOUT_DOC_REPO)
-    private readonly layoutDocRepo: LayoutDocRepoPort,
+    @Inject(NODE_REPO)
+    private readonly nodeRepo: NodeRepoPort,
+    @Inject(MEMO_DOC_REPO)
+    private readonly memoDocRepo: MemoDocRepoPort,
+    @Inject(HIGHLIGHT_DOC_REPO)
+    private readonly highlightDocRepo: HighlightDocRepoPort,
   ) {}
 
-  private getLastSyncedAt(
-    type: 'node' | 'highlight',
-  ): Timestamp {
+  private getLastSyncedAt(type: NodeType): Timestamp {
     const saved = this.configService.get(`${type}.lastSyncedAt`);
     return saved
       ? Timestamp.create(new Date(saved))
@@ -36,7 +42,7 @@ export class SchedulerService {
 
   private saveLastSyncedAt(
     timestamp: Timestamp,
-    type: 'node' | 'highlight',
+    type: NodeType,
   ): void {
     this.configService.set(
       `${type}.lastSyncedAt`,
@@ -45,19 +51,19 @@ export class SchedulerService {
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
-  async syncNodes() {
-    const from = this.getLastSyncedAt('node');
+  async syncMemos() {
+    const from = this.getLastSyncedAt('memo');
     const to = Timestamp.now();
 
-    const updatedNodes = await this.layoutRepo
-      .findNodes()
+    const updatedMemos = await this.nodeRepo
+      .findMemosWithDeletedAt()
       .byMarkdownUpdatedBetween(from, to);
 
-    if (updatedNodes.length > 0) {
-      await this.layoutDocRepo.bulkNodes(updatedNodes);
+    if (updatedMemos.length > 0) {
+      await this.memoDocRepo.bulkMemos(updatedMemos);
     }
 
-    this.saveLastSyncedAt(to, 'node');
+    this.saveLastSyncedAt(to, 'memo');
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
@@ -65,12 +71,14 @@ export class SchedulerService {
     const from = this.getLastSyncedAt('highlight');
     const to = Timestamp.now();
 
-    const updatedHighlights = await this.layoutRepo
-      .findHighlights()
-      .bySpansUpdatedBetween(from, to);
+    const updatedHighlights = await this.nodeRepo
+      .findHighlightsWithDeletedAt()
+      .byUpdatedBetween(from, to);
 
     if (updatedHighlights.length > 0) {
-      await this.layoutDocRepo.bulkHighlights(updatedHighlights);
+      await this.highlightDocRepo.bulkHighlights(
+        updatedHighlights,
+      );
     }
 
     this.saveLastSyncedAt(to, 'highlight');

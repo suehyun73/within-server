@@ -1,43 +1,46 @@
 import { Highlight } from 'src/domain/entity/highlight';
-import { Node } from 'src/domain/entity/node';
+import { Memo } from 'src/domain/entity/memo';
 import { Id } from 'src/domain/vo/id';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
 import { Db } from 'src/shared/type/db.type';
 
-export const LAYOUT_REPO = Symbol('LAYOUT_REPO');
+export const NODE_REPO = Symbol('NODE_REPO');
 
-export interface LayoutRepoPort {
-  upsertNodes(nodes: Node[], db?: Db): Promise<Node[]>;
+export interface NodeRepoPort {
+  upsertMemos(memos: Memo[], db?: Db): Promise<Memo[]>;
 
   upsertHighlights(
     highlights: Highlight[],
     db?: Db,
   ): Promise<Highlight[]>;
 
-  findNodesHighlights(): {
+  findMemosHighlights(): {
     byTargetUrlUserId(
       targetUrl: Url,
       userId: Id,
       db?: Db,
     ): Promise<{
-      nodes: Node[];
+      memos: Memo[];
       highlights: Highlight[];
     }>;
   };
 
-  findNodes(): {
+  findMemos(): {
     byTargetUrlUserId(
       targetUrl: Url,
       userId: Id,
       db?: Db,
-    ): Promise<Node[]>;
-    byIds(ids: Id[], db?: Db): Promise<Node[]>;
+    ): Promise<Memo[]>;
+    byIds(ids: Id[], db?: Db): Promise<Memo[]>;
+  };
+
+  findMemosWithDeletedAt(): {
     byMarkdownUpdatedBetween(
       from: Timestamp,
       to: Timestamp,
       db?: Db,
-    ): Promise<Node[]>;
+    ): Promise<Memo[]>;
   };
 
   findHighlights(): {
@@ -47,14 +50,17 @@ export interface LayoutRepoPort {
       db?: Db,
     ): Promise<Highlight[]>;
     byIds(ids: Id[], db?: Db): Promise<Highlight[]>;
-    bySpansUpdatedBetween(
+  };
+
+  findHighlightsWithDeletedAt(): {
+    byUpdatedBetween(
       from: Timestamp,
       to: Timestamp,
       db?: Db,
     ): Promise<Highlight[]>;
   };
 
-  deleteNodes(): {
+  deleteMemos(): {
     byIds(ids: Id[], db?: Db): Promise<void>;
   };
 

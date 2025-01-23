@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
-import { LayoutDocRepo } from './repo/layoutDoc.repo';
-import { LAYOUT_DOC_REPO } from 'src/port/out/layoutDoc.repo.port';
+import { HIGHLIGHT_DOC_REPO } from 'src/port/out/es/highlightDoc.repo.port';
+import { HighlightDocRepo } from './repo/highlightDoc.repo';
+import { MemoDocRepo } from './repo/memoDoc.repo';
+import { MEMO_DOC_REPO } from 'src/port/out/es/memoDoc.repo.port';
 
 @Module({
   imports: [
@@ -19,8 +21,9 @@ import { LAYOUT_DOC_REPO } from 'src/port/out/layoutDoc.repo.port';
     }),
   ],
   providers: [
-    { provide: LAYOUT_DOC_REPO, useClass: LayoutDocRepo },
+    { provide: HIGHLIGHT_DOC_REPO, useClass: HighlightDocRepo },
+    { provide: MEMO_DOC_REPO, useClass: MemoDocRepo },
   ],
-  exports: [LAYOUT_DOC_REPO],
+  exports: [HIGHLIGHT_DOC_REPO, MEMO_DOC_REPO],
 })
 export class EsModule {}

@@ -10,7 +10,7 @@ import {
   or,
   sql,
 } from 'drizzle-orm';
-import { Node } from 'src/domain/entity/node';
+import { Memo } from 'src/domain/entity/memo';
 import { Id } from 'src/domain/vo/id';
 import { LocalId } from 'src/domain/vo/localId';
 import { Markdown } from 'src/domain/vo/markdown';
@@ -18,10 +18,10 @@ import { Pos } from 'src/domain/vo/pos';
 import { Scope } from 'src/domain/vo/scope';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
-import { LayoutRepoPort } from 'src/port/out/layout.repo.port';
+import { NodeRepoPort } from 'src/port/out/db/node.repo.port';
 import {
   highlightTable,
-  nodeTable,
+  memoTable,
   userTable,
 } from '../orm/schema';
 import { Highlight } from 'src/domain/entity/highlight';
@@ -30,21 +30,21 @@ import { Span } from 'src/domain/vo/span';
 import {
   DB_SERVICE,
   DbServicePort,
-} from 'src/port/out/db.service.port';
+} from 'src/port/out/db/db.service.port';
 
 @Injectable()
-export class LayoutRepo implements LayoutRepoPort {
+export class NodeRepo implements NodeRepoPort {
   constructor(
     @Inject(DB_SERVICE)
     private readonly dbService: DbServicePort,
   ) {}
 
-  async upsertNodes(
-    nodes: Node[],
+  async upsertMemos(
+    nodes: Memo[],
     db = this.dbService.getDb(),
-  ): Promise<Node[]> {
+  ): Promise<Memo[]> {
     const rows = await db
-      .insert(nodeTable)
+      .insert(memoTable)
       .values(
         nodes.map((node) => ({
           localId: node.localId.value,
@@ -59,11 +59,11 @@ export class LayoutRepo implements LayoutRepoPort {
       )
       .onConflictDoUpdate({
         target: [
-          nodeTable.localId,
-          nodeTable.userId,
-          nodeTable.targetUrl,
+          memoTable.localId,
+          memoTable.userId,
+          memoTable.targetUrl,
         ],
-        targetWhere: isNull(nodeTable.deletedAt),
+        targetWhere: isNull(memoTable.deletedAt),
         set: {
           markdown: sql`excluded.markdown`,
           posX: sql`excluded.pos_x`,
@@ -71,15 +71,15 @@ export class LayoutRepo implements LayoutRepoPort {
           scope: sql`excluded.scope`,
           markdownUpdatedAt: sql`
             CASE
-              WHEN excluded.markdown <> ${nodeTable.markdown} THEN CURRENT_TIMESTAMP
-              ELSE ${nodeTable.markdownUpdatedAt}
+              WHEN excluded.markdown <> ${memoTable.markdown} THEN CURRENT_TIMESTAMP
+              ELSE ${memoTable.markdownUpdatedAt}
             END
           `,
         },
       })
       .returning();
 
-    return this.mapToNodes(rows);
+    return this.mapToMemos(rows);
   }
 
   async upsertHighlights(
@@ -112,28 +112,28 @@ export class LayoutRepo implements LayoutRepoPort {
     return this.mapToHighlights(rows);
   }
 
-  findNodesHighlights() {
+  findMemosHighlights() {
     return {
       byTargetUrlUserId: async (
         targetUrl: Url,
         userId: Id,
         db = this.dbService.getDb(),
-      ): Promise<{ nodes: Node[]; highlights: Highlight[] }> => {
+      ): Promise<{ memos: Memo[]; highlights: Highlight[] }> => {
         const result = await db.query.userTable.findFirst({
           with: {
-            nodes: {
+            memos: {
               where: or(
                 and(
-                  eq(nodeTable.targetUrl, targetUrl.value),
-                  isNull(nodeTable.deletedAt),
+                  eq(memoTable.targetUrl, targetUrl.value),
+                  isNull(memoTable.deletedAt),
                 ),
                 and(
                   eq(
-                    nodeTable.domain,
+                    memoTable.domain,
                     targetUrl.extract().domain,
                   ),
-                  eq(nodeTable.scope, 'domain'),
-                  isNull(nodeTable.deletedAt),
+                  eq(memoTable.scope, 'domain'),
+                  isNull(memoTable.deletedAt),
                 ),
               ),
             },
@@ -152,67 +152,71 @@ export class LayoutRepo implements LayoutRepoPort {
         });
 
         if (!result) {
-          return { nodes: [], highlights: [] };
+          return { memos: [], highlights: [] };
         }
 
         return {
-          nodes: this.mapToNodes(result.nodes),
+          memos: this.mapToMemos(result.memos),
           highlights: this.mapToHighlights(result.highlights),
         };
       },
     };
   }
 
-  findNodes() {
+  findMemos() {
     return {
       byTargetUrlUserId: async (
         targetUrl: Url,
         userId: Id,
         db = this.dbService.getDb(),
-      ): Promise<Node[]> => {
-        const rows = await db.query.nodeTable.findMany({
+      ): Promise<Memo[]> => {
+        const rows = await db.query.memoTable.findMany({
           where: and(
-            eq(nodeTable.targetUrl, targetUrl.value),
-            eq(nodeTable.userId, userId.value),
-            isNull(nodeTable.deletedAt),
+            eq(memoTable.targetUrl, targetUrl.value),
+            eq(memoTable.userId, userId.value),
+            isNull(memoTable.deletedAt),
           ),
         });
 
-        return this.mapToNodes(rows);
+        return this.mapToMemos(rows);
       },
       byIds: async (
         ids: Id[],
         db = this.dbService.getDb(),
-      ): Promise<Node[]> => {
-        const rows = await db.query.nodeTable.findMany({
+      ): Promise<Memo[]> => {
+        const rows = await db.query.memoTable.findMany({
           where: and(
             inArray(
-              nodeTable.id,
+              memoTable.id,
               ids.map((id) => id.value),
             ),
-            isNull(nodeTable.deletedAt),
+            isNull(memoTable.deletedAt),
           ),
         });
 
-        return this.mapToNodes(rows);
+        return this.mapToMemos(rows);
       },
+    };
+  }
+
+  findMemosWithDeletedAt() {
+    return {
       byMarkdownUpdatedBetween: async (
         from: Timestamp,
         to: Timestamp,
         db = this.dbService.getDb(),
-      ): Promise<Node[]> => {
-        const rows = await db.query.nodeTable.findMany({
+      ): Promise<Memo[]> => {
+        const rows = await db.query.memoTable.findMany({
           where: and(
             between(
-              nodeTable.markdownUpdatedAt,
+              memoTable.markdownUpdatedAt,
               from.value,
               to.value,
             ),
-            isNull(nodeTable.deletedAt),
           ),
         });
 
-        return this.mapToNodes(rows);
+        return this.mapToMemos(rows);
       },
     };
   }
@@ -250,7 +254,12 @@ export class LayoutRepo implements LayoutRepoPort {
 
         return this.mapToHighlights(rows);
       },
-      bySpansUpdatedBetween: async (
+    };
+  }
+
+  findHighlightsWithDeletedAt() {
+    return {
+      byUpdatedBetween: async (
         from: Timestamp,
         to: Timestamp,
         db = this.dbService.getDb(),
@@ -262,7 +271,6 @@ export class LayoutRepo implements LayoutRepoPort {
               from.value,
               to.value,
             ),
-            isNull(highlightTable.deletedAt),
           ),
         });
 
@@ -271,22 +279,22 @@ export class LayoutRepo implements LayoutRepoPort {
     };
   }
 
-  deleteNodes() {
+  deleteMemos() {
     return {
       byIds: async (
         ids: Id[],
         db = this.dbService.getDb(),
       ): Promise<void> => {
         await db
-          .update(nodeTable)
+          .update(memoTable)
           .set({ deletedAt: Timestamp.now().value })
           .where(
             and(
               inArray(
-                nodeTable.id,
+                memoTable.id,
                 ids.map((id) => id.value),
               ),
-              isNull(nodeTable.deletedAt),
+              isNull(memoTable.deletedAt),
             ),
           );
       },
@@ -315,11 +323,11 @@ export class LayoutRepo implements LayoutRepoPort {
     };
   }
 
-  private mapToNodes(
-    rows: InferSelectModel<typeof nodeTable>[],
-  ): Node[] {
+  private mapToMemos(
+    rows: InferSelectModel<typeof memoTable>[],
+  ): Memo[] {
     return rows.map((row) =>
-      Builder(Node)
+      Builder(Memo)
         .id(Id.create(row.id))
         .localId(LocalId.create(row.localId))
         .userId(Id.create(row.userId))
@@ -331,6 +339,11 @@ export class LayoutRepo implements LayoutRepoPort {
         .updatedAt(Timestamp.create(row.updatedAt))
         .markdownUpdatedAt(
           Timestamp.create(row.markdownUpdatedAt),
+        )
+        .deletedAt(
+          row.deletedAt
+            ? Timestamp.create(row.deletedAt)
+            : undefined,
         )
         .build(),
     );
@@ -348,6 +361,11 @@ export class LayoutRepo implements LayoutRepoPort {
         .spans(row.spans.map((span) => Span.create(span)))
         .createdAt(Timestamp.create(row.createdAt))
         .updatedAt(Timestamp.create(row.updatedAt))
+        .deletedAt(
+          row.deletedAt
+            ? Timestamp.create(row.deletedAt)
+            : undefined,
+        )
         .build(),
     );
   }

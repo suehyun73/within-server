@@ -23,6 +23,14 @@ export class Timestamp {
     return new Timestamp(value);
   }
 
+  static fromString(value: string) {
+    const date = new Date(value);
+    if (!Timestamp.isValid(date))
+      throw new BadRequestException();
+
+    return new Timestamp(date);
+  }
+
   static now() {
     return Timestamp.create(new Date());
   }

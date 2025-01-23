@@ -6,7 +6,7 @@ import { Scope } from '../vo/scope';
 import { Timestamp } from '../vo/timestamp';
 import { Url } from '../vo/url';
 
-export class Node {
+export class Memo {
   id?: Id;
   localId!: LocalId;
   userId!: Id;

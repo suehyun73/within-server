@@ -1,21 +1,21 @@
 import { IsString } from 'class-validator';
 
-export const GET_LAYOUT_USECASE = Symbol('GET_LAYOUT_USECASE');
+export const GET_NODES_USECASE = Symbol('GET_NODES_USECASE');
 
-export interface GetLayoutUsecasePort {
+export interface GetNodesUsecasePort {
   execute(
-    dto: GetLayoutDtoIn,
+    dto: GetNodesDtoIn,
     client: Client,
-  ): Promise<GetLayoutDtoOut>;
+  ): Promise<GetNodesDtoOut>;
 }
 
-export class GetLayoutDtoIn {
+export class GetNodesDtoIn {
   @IsString()
   url!: string;
 }
 
-export class GetLayoutDtoOut {
-  nodes!: {
+export class GetNodesDtoOut {
+  memos!: {
     localId: string;
     markdown: string;
     pos: { x: number; y: number };
