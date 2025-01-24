@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
-import { HIGHLIGHT_DOC_REPO } from 'src/port/out/es/highlightDoc.repo.port';
+import { HIGHLIGHT_DOC_REPO } from 'src/port/out/doc/highlight.doc.repo.port';
 import { HighlightDocRepo } from './repo/highlightDoc.repo';
 import { MemoDocRepo } from './repo/memoDoc.repo';
-import { MEMO_DOC_REPO } from 'src/port/out/es/memoDoc.repo.port';
+import { MEMO_DOC_REPO } from 'src/port/out/doc/memo.doc.repo.port';
 
 @Module({
   imports: [

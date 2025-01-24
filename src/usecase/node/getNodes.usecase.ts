@@ -11,15 +11,15 @@ import {
   GetNodesUsecasePort,
 } from 'src/port/in/node/getNodes.usecase.port';
 import {
-  NODE_REPO,
-  NodeRepoPort,
-} from 'src/port/out/db/node.repo.port';
+  NODE_DB_REPO,
+  NodeDbRepoPort,
+} from 'src/port/out/db/node.db.repo.port';
 
 @Injectable()
 export class GetNodesUsecase implements GetNodesUsecasePort {
   constructor(
-    @Inject(NODE_REPO)
-    private readonly nodeRepo: NodeRepoPort,
+    @Inject(NODE_DB_REPO)
+    private readonly nodeDbRepo: NodeDbRepoPort,
   ) {}
 
   async execute(
@@ -30,7 +30,7 @@ export class GetNodesUsecase implements GetNodesUsecasePort {
     const targetUrl = Url.create(dto.url);
 
     // 데이터 조회
-    const { memos, highlights } = await this.nodeRepo
+    const { memos, highlights } = await this.nodeDbRepo
       .findMemosHighlights()
       .byTargetUrlUserId(targetUrl, client.id);
 

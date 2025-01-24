@@ -3,9 +3,9 @@ import { GoogleId } from 'src/domain/vo/googleId';
 import { Id } from 'src/domain/vo/id';
 import { Db } from 'src/shared/type/db.type';
 
-export const USER_REPO = Symbol('USER_REPO');
+export const USER_DB_REPO = Symbol('USER_DB_REPO');
 
-export interface UserRepoPort {
+export interface UserDbRepoPort {
   saveUser(user: User, db?: Db): Promise<User>;
 
   findUser(): {

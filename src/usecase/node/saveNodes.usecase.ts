@@ -19,17 +19,17 @@ import {
   DbServicePort,
 } from 'src/port/out/db/db.service.port';
 import {
-  NODE_REPO,
-  NodeRepoPort,
-} from 'src/port/out/db/node.repo.port';
+  NODE_DB_REPO,
+  NodeDbRepoPort,
+} from 'src/port/out/db/node.db.repo.port';
 
 @Injectable()
 export class SaveNodesUsecase implements SaveNodesUsecasePort {
   constructor(
     @Inject(DB_SERVICE)
     private readonly dbService: DbServicePort,
-    @Inject(NODE_REPO)
-    private readonly nodeRepo: NodeRepoPort,
+    @Inject(NODE_DB_REPO)
+    private readonly nodeDbRepo: NodeDbRepoPort,
   ) {}
 
   async execute(
@@ -65,7 +65,7 @@ export class SaveNodesUsecase implements SaveNodesUsecasePort {
     const {
       memos: existingMemos,
       highlights: existingHighlights,
-    } = await this.nodeRepo
+    } = await this.nodeDbRepo
       .findMemosHighlights()
       .byTargetUrlUserId(url, client.id);
 
@@ -94,12 +94,12 @@ export class SaveNodesUsecase implements SaveNodesUsecasePort {
       // 삭제 작업들을 병렬로 처리
       await Promise.all([
         memoIdsToDelete.length > 0
-          ? this.nodeRepo
+          ? this.nodeDbRepo
               .deleteMemos()
               .byIds(memoIdsToDelete, tx)
           : Promise.resolve(),
         highlightIdsToDelete.length > 0
-          ? this.nodeRepo
+          ? this.nodeDbRepo
               .deleteHighlights()
               .byIds(highlightIdsToDelete, tx)
           : Promise.resolve(),
@@ -108,10 +108,10 @@ export class SaveNodesUsecase implements SaveNodesUsecasePort {
       // upsert 작업들을 병렬로 처리
       await Promise.all([
         memosToUpsert.length > 0
-          ? this.nodeRepo.upsertMemos(memosToUpsert, tx)
+          ? this.nodeDbRepo.upsertMemos(memosToUpsert, tx)
           : Promise.resolve(),
         highlightsToUpsert.length > 0
-          ? this.nodeRepo.upsertHighlights(
+          ? this.nodeDbRepo.upsertHighlights(
               highlightsToUpsert,
               tx,
             )

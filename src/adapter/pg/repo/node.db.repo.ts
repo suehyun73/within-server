@@ -18,7 +18,7 @@ import { Pos } from 'src/domain/vo/pos';
 import { Scope } from 'src/domain/vo/scope';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
-import { NodeRepoPort } from 'src/port/out/db/node.repo.port';
+import { NodeDbRepoPort } from 'src/port/out/db/node.db.repo.port';
 import {
   highlightTable,
   memoTable,
@@ -33,7 +33,7 @@ import {
 } from 'src/port/out/db/db.service.port';
 
 @Injectable()
-export class NodeRepo implements NodeRepoPort {
+export class PgNodeDbRepo implements NodeDbRepoPort {
   constructor(
     @Inject(DB_SERVICE)
     private readonly dbService: DbServicePort,

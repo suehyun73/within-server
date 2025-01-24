@@ -7,7 +7,7 @@ import { Db } from 'src/shared/type/db.type';
 import { DbServicePort } from 'src/port/out/db/db.service.port';
 
 @Injectable()
-export class DbService implements DbServicePort {
+export class PgService implements DbServicePort {
   private readonly pool: Pool;
   private readonly db: Db;
 

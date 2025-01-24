@@ -6,9 +6,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import {
-  UserRepoPort,
-  USER_REPO,
-} from 'src/port/out/db/user.repo.port';
+  UserDbRepoPort,
+  USER_DB_REPO,
+} from 'src/port/out/db/user.db.repo.port';
 import { GoogleId } from 'src/domain/vo/googleId';
 import { Name } from 'src/domain/vo/name';
 import { Url } from 'src/domain/vo/url';
@@ -26,7 +26,8 @@ export class GoogleOauth2Strategy extends PassportStrategy(
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    @Inject(USER_REPO) private readonly userRepo: UserRepoPort,
+    @Inject(USER_DB_REPO)
+    private readonly userDbRepo: UserDbRepoPort,
   ) {
     super({
       clientID: configService.getOrThrow('GOOGLE_CLIENT_ID'),
@@ -50,7 +51,9 @@ export class GoogleOauth2Strategy extends PassportStrategy(
     const userId = GoogleId.create(sub);
 
     // 기존 사용자 조회
-    let user = await this.userRepo.findUser().byGoogleId(userId);
+    let user = await this.userDbRepo
+      .findUser()
+      .byGoogleId(userId);
 
     // 신규 사용자인 경우 생성
     if (!user) {
@@ -62,7 +65,7 @@ export class GoogleOauth2Strategy extends PassportStrategy(
         .profileUrl(Url.create(picture))
         .build();
 
-      user = await this.userRepo.saveUser(newUser);
+      user = await this.userDbRepo.saveUser(newUser);
     }
 
     // JWT 토큰 생성

@@ -8,10 +8,10 @@ services:
     ports:
       - ${APP_PORT}:${APP_PORT}
     depends_on:
-      - db
+      - pg
       - es
 
-  db:
+  pg:
     image: postgres:17-alpine
     environment:
       - POSTGRES_USER=${PG_USER}
@@ -21,18 +21,27 @@ services:
       - ${PG_PORT}:5432
     attach: false
 
+  # ms:
+  #   image: getmeili/meilisearch:latest
+  #   environment:
+  #     - MEILI_MASTER_KEY=${MS_MASTER_KEY}
+  #   ports:
+  #     - ${MS_PORT}:7700
+  #   attach: false
+
   es:
     image: elasticsearch:8.12.1
     environment:
       - xpack.security.enabled=false
       - ELASTIC_PASSWORD=${ES_PW}
       - discovery.type=single-node
-      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+      - 'ES_JAVA_OPTS=-Xms256m -Xmx256m'
     ports:
       - ${ES_PORT}:9200
+    mem_limit: 416m
+    attach: false
     command: >
       bash -c '
         bin/elasticsearch-plugin install analysis-nori;
         /usr/local/bin/docker-entrypoint.sh elasticsearch
       '
-    attach: false

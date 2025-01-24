@@ -13,11 +13,11 @@ import {
 import {
   HIGHLIGHT_DOC_REPO,
   HighlightDocRepoPort,
-} from 'src/port/out/es/highlightDoc.repo.port';
+} from 'src/port/out/doc/highlight.doc.repo.port';
 import {
   MEMO_DOC_REPO,
   MemoDocRepoPort,
-} from 'src/port/out/es/memoDoc.repo.port';
+} from 'src/port/out/doc/memo.doc.repo.port';
 @Injectable()
 export class SearchNodesUsecase
   implements SearchNodesUsecasePort

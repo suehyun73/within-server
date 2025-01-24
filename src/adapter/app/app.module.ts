@@ -12,11 +12,12 @@ import { JwtGuard } from './auth/jwt/jwt.guard';
 import { RolesGuard } from './auth/roles/roles.guard';
 import { GET_NODES_USECASE } from 'src/port/in/node/getNodes.usecase.port';
 import { GetNodesUsecase } from 'src/usecase/node/getNodes.usecase';
-import { DbModule } from '../db/db.module';
-import { EsModule } from '../es/es.module';
+import { PgModule } from '../pg/pg.module';
+import { MsModule } from '../ms/ms.module';
 import { SchedulerModule } from '../scheduler/scheduler.module';
 import { SEARCH_NODES_USECASE } from 'src/port/in/node/searchNodes.usecase.port';
 import { SearchNodesUsecase } from 'src/usecase/node/searchNodes.usecase';
+import { EsModule } from '../es/es.module';
 
 @Module({
   // 현재 모듈에서 사용하려는 다른 모듈
@@ -31,7 +32,7 @@ import { SearchNodesUsecase } from 'src/usecase/node/searchNodes.usecase';
       }),
       inject: [ConfigService], // 위의 configService 파라미터에 주입될 의존성
     }),
-    DbModule,
+    PgModule,
     EsModule,
     SchedulerModule,
   ],

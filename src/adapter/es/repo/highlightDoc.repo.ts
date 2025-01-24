@@ -6,7 +6,7 @@ import { Timestamp } from 'src/domain/vo/timestamp';
 import { Id } from 'src/domain/vo/id';
 import { Url } from 'src/domain/vo/url';
 import { Span } from 'src/domain/vo/span';
-import { HighlightDocRepoPort } from 'src/port/out/es/highlightDoc.repo.port';
+import { HighlightDocRepoPort } from 'src/port/out/doc/highlight.doc.repo.port';
 import { Q } from 'src/domain/vo/q';
 import { Selector } from 'src/domain/vo/selector';
 

@@ -3,17 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import {
-  NODE_REPO,
-  NodeRepoPort,
-} from 'src/port/out/db/node.repo.port';
+  NODE_DB_REPO,
+  NodeDbRepoPort,
+} from 'src/port/out/db/node.db.repo.port';
 import {
   MEMO_DOC_REPO,
   MemoDocRepoPort,
-} from 'src/port/out/es/memoDoc.repo.port';
+} from 'src/port/out/doc/memo.doc.repo.port';
 import {
   HIGHLIGHT_DOC_REPO,
   HighlightDocRepoPort,
-} from 'src/port/out/es/highlightDoc.repo.port';
+} from 'src/port/out/doc/highlight.doc.repo.port';
 
 type NodeType = 'memo' | 'highlight';
 
@@ -23,8 +23,8 @@ export class SchedulerService {
 
   constructor(
     private readonly configService: ConfigService,
-    @Inject(NODE_REPO)
-    private readonly nodeRepo: NodeRepoPort,
+    @Inject(NODE_DB_REPO)
+    private readonly nodeRepo: NodeDbRepoPort,
     @Inject(MEMO_DOC_REPO)
     private readonly memoDocRepo: MemoDocRepoPort,
     @Inject(HIGHLIGHT_DOC_REPO)

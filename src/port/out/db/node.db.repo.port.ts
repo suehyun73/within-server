@@ -5,9 +5,9 @@ import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
 import { Db } from 'src/shared/type/db.type';
 
-export const NODE_REPO = Symbol('NODE_REPO');
+export const NODE_DB_REPO = Symbol('NODE_DB_REPO');
 
-export interface NodeRepoPort {
+export interface NodeDbRepoPort {
   upsertMemos(memos: Memo[], db?: Db): Promise<Memo[]>;
 
   upsertHighlights(

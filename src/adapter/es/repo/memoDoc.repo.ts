@@ -8,7 +8,7 @@ import { Pos } from 'src/domain/vo/pos';
 import { Q } from 'src/domain/vo/q';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
-import { MemoDocRepoPort } from 'src/port/out/es/memoDoc.repo.port';
+import { MemoDocRepoPort } from 'src/port/out/doc/memo.doc.repo.port';
 
 @Injectable()
 export class MemoDocRepo implements MemoDocRepoPort {
