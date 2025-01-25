@@ -1,3 +1,16 @@
-node_modules/
-Dockerfile
+# 빌드
+dist
+
+# 환경이 달라져 기존 의존성과의 충돌 우려
+node_modules
+
+# git 불필요
 .git
+.gitignore
+
+# docker file 불필요
+dockerfile.app
+docker-compose.yml
+
+# 이외
+.prettierrc

@@ -8,4 +8,6 @@ RUN ["npm", "install"]
 
 COPY . .
 
+RUN ["npm", "run", "drizzle:push"]
+
 CMD ["npm", "run", "start:dev"]

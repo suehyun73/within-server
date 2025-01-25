@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Roles } from './roles.decorator';
+import { UseRoles } from './useRoles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -13,7 +13,7 @@ export class RolesGuard implements CanActivate {
 
   canActivate(ctx: ExecutionContext): boolean {
     const requiredRoles = this.reflector.get(
-      Roles,
+      UseRoles,
       ctx.getHandler(),
     );
 

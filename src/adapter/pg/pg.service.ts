@@ -3,13 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from './orm/schema';
 import { Pool } from 'pg';
-import { Db } from 'src/shared/type/db.type';
-import { DbServicePort } from 'src/port/out/db/db.service.port';
+import { RdbInstance } from 'src/shared/type/rdbInstance.type';
+import { RdbServicePort } from 'src/port/out/rdb/rdb.service.port';
 
 @Injectable()
-export class PgService implements DbServicePort {
+export class PgService implements RdbServicePort {
   private readonly pool: Pool;
-  private readonly db: Db;
+  private readonly db: RdbInstance;
 
   constructor(private readonly configService: ConfigService) {
     this.pool = new Pool({
@@ -23,14 +23,14 @@ export class PgService implements DbServicePort {
     this.db = drizzle(this.pool, { schema });
   }
 
-  getDb() {
+  getInstance() {
     return this.db;
   }
 
   async transaction<T>(
-    callback: (tx: Db) => Promise<T>,
+    callback: (tx: RdbInstance) => Promise<T>,
   ): Promise<T> {
-    const db = this.getDb();
+    const db = this.getInstance();
     return await db.transaction(callback);
   }
 }

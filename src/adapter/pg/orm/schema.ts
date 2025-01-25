@@ -17,7 +17,7 @@ export const scopeEnum = pgEnum('scope', [
   'full-path',
 ]);
 
-export const userTable = pgTable('user_table', {
+export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   googleId: varchar('google_id').notNull().unique(),
   name: varchar('name').notNull(),
@@ -32,14 +32,14 @@ export const userTable = pgTable('user_table', {
   deletedAt: timestamp('deleted_at'),
 });
 
-export const memoTable = pgTable(
-  'memo_table',
+export const memos = pgTable(
+  'memos',
   {
     id: serial('id').primaryKey(),
     localId: varchar('local_id').notNull(),
     userId: integer('user_id')
       .notNull()
-      .references(() => userTable.id),
+      .references(() => users.id),
     targetUrl: varchar('target_url').notNull(),
     domain: varchar('domain').notNull(),
     markdown: text('markdown').notNull(),
@@ -64,13 +64,13 @@ export const memoTable = pgTable(
   }),
 );
 
-export const highlightTable = pgTable(
-  'highlight_table',
+export const highlights = pgTable(
+  'highlights',
   {
     id: serial('id').primaryKey(),
     userId: integer('user_id')
       .notNull()
-      .references(() => userTable.id),
+      .references(() => users.id),
     targetUrl: varchar('target_url').notNull(),
     selector: varchar('selector').notNull(),
     spans: json('spans')
@@ -93,27 +93,24 @@ export const highlightTable = pgTable(
   }),
 );
 
-export const userRelations = relations(
-  userTable,
-  ({ many }) => ({
-    memos: many(memoTable),
-    highlights: many(highlightTable),
-  }),
-);
+export const userRelations = relations(users, ({ many }) => ({
+  memos: many(memos),
+  highlights: many(highlights),
+}));
 
-export const memoRelations = relations(memoTable, ({ one }) => ({
-  user: one(userTable, {
-    fields: [memoTable.userId],
-    references: [userTable.id],
+export const memoRelations = relations(memos, ({ one }) => ({
+  user: one(users, {
+    fields: [memos.userId],
+    references: [users.id],
   }),
 }));
 
 export const highlightRelations = relations(
-  highlightTable,
+  highlights,
   ({ one }) => ({
-    user: one(userTable, {
-      fields: [highlightTable.userId],
-      references: [userTable.id],
+    user: one(users, {
+      fields: [highlights.userId],
+      references: [users.id],
     }),
   }),
 );

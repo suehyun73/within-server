@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ExceptionFilter } from './filter/exception.filter';
 import { SuccessInterceptor } from './interceptor/success.interceptor';
 
-async function run() {
+async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // 모든 api들이 "/api"로 시작
@@ -21,6 +21,7 @@ async function run() {
       forbidNonWhitelisted: true,
     }),
   );
+
   await app.listen(process.env.APP_PORT!);
 }
-run();
+bootstrap();

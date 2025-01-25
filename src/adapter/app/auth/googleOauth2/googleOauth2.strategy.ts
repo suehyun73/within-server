@@ -6,9 +6,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import {
-  UserDbRepoPort,
-  USER_DB_REPO,
-} from 'src/port/out/db/user.db.repo.port';
+  UserRdbRepoPort,
+  USER_RDB_REPO,
+} from 'src/port/out/rdb/user.rdb.repo.port';
 import { GoogleId } from 'src/domain/vo/googleId';
 import { Name } from 'src/domain/vo/name';
 import { Url } from 'src/domain/vo/url';
@@ -26,8 +26,8 @@ export class GoogleOauth2Strategy extends PassportStrategy(
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    @Inject(USER_DB_REPO)
-    private readonly userDbRepo: UserDbRepoPort,
+    @Inject(USER_RDB_REPO)
+    private readonly userDbRepo: UserRdbRepoPort,
   ) {
     super({
       clientID: configService.getOrThrow('GOOGLE_CLIENT_ID'),

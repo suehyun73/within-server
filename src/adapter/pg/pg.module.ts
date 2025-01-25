@@ -1,25 +1,25 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { DB_SERVICE } from 'src/port/out/db/db.service.port';
+import { RDB_SERVICE } from 'src/port/out/rdb/rdb.service.port';
 import { PgService } from './pg.service';
-import { PgNodeDbRepo } from './repo/node.db.repo';
-import { PgUserDbRepo } from './repo/user.db.repo';
-import { USER_DB_REPO } from 'src/port/out/db/user.db.repo.port';
-import { NODE_DB_REPO } from 'src/port/out/db/node.db.repo.port';
+import { NodePgRepo } from './repo/node.pg.repo';
+import { PgUserDbRepo } from './repo/user.pg.repo';
+import { USER_RDB_REPO } from 'src/port/out/rdb/user.rdb.repo.port';
+import { NODE_RDB_REPO } from 'src/port/out/rdb/node.rdb.repo.port';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true })],
   providers: [
     {
-      provide: DB_SERVICE,
+      provide: RDB_SERVICE,
       useFactory: (configService: ConfigService) => {
         return new PgService(configService);
       },
       inject: [ConfigService],
     },
-    { provide: USER_DB_REPO, useClass: PgUserDbRepo },
-    { provide: NODE_DB_REPO, useClass: PgNodeDbRepo },
+    { provide: USER_RDB_REPO, useClass: PgUserDbRepo },
+    { provide: NODE_RDB_REPO, useClass: NodePgRepo },
   ],
-  exports: [DB_SERVICE, USER_DB_REPO, NODE_DB_REPO],
+  exports: [RDB_SERVICE, USER_RDB_REPO, NODE_RDB_REPO],
 })
 export class PgModule {}

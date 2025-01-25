@@ -18,33 +18,29 @@ import { Pos } from 'src/domain/vo/pos';
 import { Scope } from 'src/domain/vo/scope';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
-import { NodeDbRepoPort } from 'src/port/out/db/node.db.repo.port';
-import {
-  highlightTable,
-  memoTable,
-  userTable,
-} from '../orm/schema';
+import { NodeRdbRepoPort } from 'src/port/out/rdb/node.rdb.repo.port';
 import { Highlight } from 'src/domain/entity/highlight';
 import { Selector } from 'src/domain/vo/selector';
 import { Span } from 'src/domain/vo/span';
+import * as schema from '../orm/schema';
 import {
-  DB_SERVICE,
-  DbServicePort,
-} from 'src/port/out/db/db.service.port';
+  RDB_SERVICE,
+  RdbServicePort,
+} from 'src/port/out/rdb/rdb.service.port';
 
 @Injectable()
-export class PgNodeDbRepo implements NodeDbRepoPort {
+export class NodePgRepo implements NodeRdbRepoPort {
   constructor(
-    @Inject(DB_SERVICE)
-    private readonly dbService: DbServicePort,
+    @Inject(RDB_SERVICE)
+    private readonly rdbService: RdbServicePort,
   ) {}
 
   async upsertMemos(
     nodes: Memo[],
-    db = this.dbService.getDb(),
+    instance = this.rdbService.getInstance(),
   ): Promise<Memo[]> {
-    const rows = await db
-      .insert(memoTable)
+    const rows = await instance
+      .insert(schema.memos)
       .values(
         nodes.map((node) => ({
           localId: node.localId.value,
@@ -59,11 +55,11 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
       )
       .onConflictDoUpdate({
         target: [
-          memoTable.localId,
-          memoTable.userId,
-          memoTable.targetUrl,
+          schema.memos.localId,
+          schema.memos.userId,
+          schema.memos.targetUrl,
         ],
-        targetWhere: isNull(memoTable.deletedAt),
+        targetWhere: isNull(schema.memos.deletedAt),
         set: {
           markdown: sql`excluded.markdown`,
           posX: sql`excluded.pos_x`,
@@ -71,8 +67,8 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
           scope: sql`excluded.scope`,
           markdownUpdatedAt: sql`
             CASE
-              WHEN excluded.markdown <> ${memoTable.markdown} THEN CURRENT_TIMESTAMP
-              ELSE ${memoTable.markdownUpdatedAt}
+              WHEN excluded.markdown <> ${schema.memos.markdown} THEN CURRENT_TIMESTAMP
+              ELSE ${schema.memos.markdownUpdatedAt}
             END
           `,
         },
@@ -84,10 +80,10 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
 
   async upsertHighlights(
     highlights: Highlight[],
-    db = this.dbService.getDb(),
+    instance = this.rdbService.getInstance(),
   ): Promise<Highlight[]> {
-    const rows = await db
-      .insert(highlightTable)
+    const rows = await instance
+      .insert(schema.highlights)
       .values(
         highlights.map((highlight) => ({
           userId: highlight.userId.value,
@@ -98,11 +94,11 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
       )
       .onConflictDoUpdate({
         target: [
-          highlightTable.userId,
-          highlightTable.targetUrl,
-          highlightTable.selector,
+          schema.highlights.userId,
+          schema.highlights.targetUrl,
+          schema.highlights.selector,
         ],
-        targetWhere: isNull(highlightTable.deletedAt),
+        targetWhere: isNull(schema.highlights.deletedAt),
         set: {
           spans: sql`excluded.spans`,
         },
@@ -117,37 +113,37 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
       byTargetUrlUserId: async (
         targetUrl: Url,
         userId: Id,
-        db = this.dbService.getDb(),
+        instance = this.rdbService.getInstance(),
       ): Promise<{ memos: Memo[]; highlights: Highlight[] }> => {
-        const result = await db.query.userTable.findFirst({
+        const result = await instance.query.users.findFirst({
           with: {
             memos: {
               where: or(
                 and(
-                  eq(memoTable.targetUrl, targetUrl.value),
-                  isNull(memoTable.deletedAt),
+                  eq(schema.memos.targetUrl, targetUrl.value),
+                  isNull(schema.memos.deletedAt),
                 ),
                 and(
                   eq(
-                    memoTable.domain,
+                    schema.memos.domain,
                     targetUrl.extract().domain,
                   ),
-                  eq(memoTable.scope, 'domain'),
-                  isNull(memoTable.deletedAt),
+                  eq(schema.memos.scope, 'domain'),
+                  isNull(schema.memos.deletedAt),
                 ),
               ),
             },
             highlights: {
               where: and(
-                eq(highlightTable.targetUrl, targetUrl.value),
-                isNull(highlightTable.deletedAt),
+                eq(schema.highlights.targetUrl, targetUrl.value),
+                isNull(schema.highlights.deletedAt),
               ),
             },
           },
           columns: {},
           where: and(
-            eq(userTable.id, userId.value),
-            isNull(userTable.deletedAt),
+            eq(schema.users.id, userId.value),
+            isNull(schema.users.deletedAt),
           ),
         });
 
@@ -168,13 +164,13 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
       byTargetUrlUserId: async (
         targetUrl: Url,
         userId: Id,
-        db = this.dbService.getDb(),
+        instance = this.rdbService.getInstance(),
       ): Promise<Memo[]> => {
-        const rows = await db.query.memoTable.findMany({
+        const rows = await instance.query.memos.findMany({
           where: and(
-            eq(memoTable.targetUrl, targetUrl.value),
-            eq(memoTable.userId, userId.value),
-            isNull(memoTable.deletedAt),
+            eq(schema.memos.targetUrl, targetUrl.value),
+            eq(schema.memos.userId, userId.value),
+            isNull(schema.memos.deletedAt),
           ),
         });
 
@@ -182,15 +178,15 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
       },
       byIds: async (
         ids: Id[],
-        db = this.dbService.getDb(),
+        instance = this.rdbService.getInstance(),
       ): Promise<Memo[]> => {
-        const rows = await db.query.memoTable.findMany({
+        const rows = await instance.query.memos.findMany({
           where: and(
             inArray(
-              memoTable.id,
+              schema.memos.id,
               ids.map((id) => id.value),
             ),
-            isNull(memoTable.deletedAt),
+            isNull(schema.memos.deletedAt),
           ),
         });
 
@@ -204,12 +200,12 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
       byMarkdownUpdatedBetween: async (
         from: Timestamp,
         to: Timestamp,
-        db = this.dbService.getDb(),
+        instance = this.rdbService.getInstance(),
       ): Promise<Memo[]> => {
-        const rows = await db.query.memoTable.findMany({
+        const rows = await instance.query.memos.findMany({
           where: and(
             between(
-              memoTable.markdownUpdatedAt,
+              schema.memos.markdownUpdatedAt,
               from.value,
               to.value,
             ),
@@ -226,13 +222,13 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
       byTargetUrlUserId: async (
         targetUrl: Url,
         userId: Id,
-        db = this.dbService.getDb(),
+        instance = this.rdbService.getInstance(),
       ): Promise<Highlight[]> => {
-        const rows = await db.query.highlightTable.findMany({
+        const rows = await instance.query.highlights.findMany({
           where: and(
-            eq(highlightTable.targetUrl, targetUrl.value),
-            eq(highlightTable.userId, userId.value),
-            isNull(highlightTable.deletedAt),
+            eq(schema.highlights.targetUrl, targetUrl.value),
+            eq(schema.highlights.userId, userId.value),
+            isNull(schema.highlights.deletedAt),
           ),
         });
 
@@ -240,15 +236,15 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
       },
       byIds: async (
         ids: Id[],
-        db = this.dbService.getDb(),
+        instance = this.rdbService.getInstance(),
       ): Promise<Highlight[]> => {
-        const rows = await db.query.highlightTable.findMany({
+        const rows = await instance.query.highlights.findMany({
           where: and(
             inArray(
-              highlightTable.id,
+              schema.highlights.id,
               ids.map((id) => id.value),
             ),
-            isNull(highlightTable.deletedAt),
+            isNull(schema.highlights.deletedAt),
           ),
         });
 
@@ -262,12 +258,12 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
       byUpdatedBetween: async (
         from: Timestamp,
         to: Timestamp,
-        db = this.dbService.getDb(),
+        instance = this.rdbService.getInstance(),
       ): Promise<Highlight[]> => {
-        const rows = await db.query.highlightTable.findMany({
+        const rows = await instance.query.highlights.findMany({
           where: and(
             between(
-              highlightTable.updatedAt,
+              schema.highlights.updatedAt,
               from.value,
               to.value,
             ),
@@ -283,18 +279,18 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
     return {
       byIds: async (
         ids: Id[],
-        db = this.dbService.getDb(),
+        instance = this.rdbService.getInstance(),
       ): Promise<void> => {
-        await db
-          .update(memoTable)
+        await instance
+          .update(schema.memos)
           .set({ deletedAt: Timestamp.now().value })
           .where(
             and(
               inArray(
-                memoTable.id,
+                schema.memos.id,
                 ids.map((id) => id.value),
               ),
-              isNull(memoTable.deletedAt),
+              isNull(schema.memos.deletedAt),
             ),
           );
       },
@@ -305,18 +301,18 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
     return {
       byIds: async (
         ids: Id[],
-        db = this.dbService.getDb(),
+        instance = this.rdbService.getInstance(),
       ): Promise<void> => {
-        await db
-          .update(highlightTable)
+        await instance
+          .update(schema.highlights)
           .set({ deletedAt: Timestamp.now().value })
           .where(
             and(
               inArray(
-                highlightTable.id,
+                schema.highlights.id,
                 ids.map((id) => id.value),
               ),
-              isNull(highlightTable.deletedAt),
+              isNull(schema.highlights.deletedAt),
             ),
           );
       },
@@ -324,7 +320,7 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
   }
 
   private mapToMemos(
-    rows: InferSelectModel<typeof memoTable>[],
+    rows: InferSelectModel<typeof schema.memos>[],
   ): Memo[] {
     return rows.map((row) =>
       Builder(Memo)
@@ -350,7 +346,7 @@ export class PgNodeDbRepo implements NodeDbRepoPort {
   }
 
   private mapToHighlights(
-    rows: InferSelectModel<typeof highlightTable>[],
+    rows: InferSelectModel<typeof schema.highlights>[],
   ): Highlight[] {
     return rows.map((row) =>
       Builder(Highlight)

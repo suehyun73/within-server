@@ -9,26 +9,26 @@ import { Name } from 'src/domain/vo/name';
 import { Role } from 'src/domain/vo/role';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
-import { UserDbRepoPort } from 'src/port/out/db/user.db.repo.port';
-import { userTable } from '../orm/schema';
+import { UserRdbRepoPort } from 'src/port/out/rdb/user.rdb.repo.port';
+import * as schema from '../orm/schema';
 import {
-  DB_SERVICE,
-  DbServicePort,
-} from 'src/port/out/db/db.service.port';
+  RDB_SERVICE,
+  RdbServicePort,
+} from 'src/port/out/rdb/rdb.service.port';
 
 @Injectable()
-export class PgUserDbRepo implements UserDbRepoPort {
+export class PgUserDbRepo implements UserRdbRepoPort {
   constructor(
-    @Inject(DB_SERVICE)
-    private readonly dbService: DbServicePort,
+    @Inject(RDB_SERVICE)
+    private readonly dbService: RdbServicePort,
   ) {}
 
   async saveUser(
     user: User,
-    db = this.dbService.getDb(),
+    db = this.dbService.getInstance(),
   ): Promise<User> {
     const [row] = await db
-      .insert(userTable)
+      .insert(schema.users)
       .values({
         googleId: user.googleId.value,
         name: user.name.value,
@@ -45,12 +45,12 @@ export class PgUserDbRepo implements UserDbRepoPort {
     return {
       byId: async (
         userId: Id,
-        db = this.dbService.getDb(),
+        db = this.dbService.getInstance(),
       ): Promise<User | undefined> => {
-        const row = await db.query.userTable.findFirst({
+        const row = await db.query.users.findFirst({
           where: and(
-            eq(userTable.id, userId.value),
-            isNull(userTable.deletedAt),
+            eq(schema.users.id, userId.value),
+            isNull(schema.users.deletedAt),
           ),
         });
 
@@ -59,12 +59,12 @@ export class PgUserDbRepo implements UserDbRepoPort {
 
       byGoogleId: async (
         googleId: GoogleId,
-        db = this.dbService.getDb(),
+        db = this.dbService.getInstance(),
       ): Promise<User | undefined> => {
-        const row = await db.query.userTable.findFirst({
+        const row = await db.query.users.findFirst({
           where: and(
-            eq(userTable.googleId, googleId.value),
-            isNull(userTable.deletedAt),
+            eq(schema.users.googleId, googleId.value),
+            isNull(schema.users.deletedAt),
           ),
         });
 
@@ -77,15 +77,15 @@ export class PgUserDbRepo implements UserDbRepoPort {
     return {
       byId: async (
         userId: Id,
-        db = this.dbService.getDb(),
+        db = this.dbService.getInstance(),
       ): Promise<void> => {
         await db
-          .update(userTable)
+          .update(schema.users)
           .set({ deletedAt: Timestamp.now().value })
           .where(
             and(
-              eq(userTable.id, userId.value),
-              isNull(userTable.deletedAt),
+              eq(schema.users.id, userId.value),
+              isNull(schema.users.deletedAt),
             ),
           );
       },
@@ -93,7 +93,7 @@ export class PgUserDbRepo implements UserDbRepoPort {
   }
 
   private mapToUser(
-    row: InferSelectModel<typeof userTable>,
+    row: InferSelectModel<typeof schema.users>,
   ): User {
     return Builder(User)
       .id(Id.create(row.id))

@@ -3,23 +3,26 @@ import { Memo } from 'src/domain/entity/memo';
 import { Id } from 'src/domain/vo/id';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
-import { Db } from 'src/shared/type/db.type';
+import { RdbInstance } from 'src/shared/type/rdbInstance.type';
 
-export const NODE_DB_REPO = Symbol('NODE_DB_REPO');
+export const NODE_RDB_REPO = Symbol('NODE_RDB_REPO');
 
-export interface NodeDbRepoPort {
-  upsertMemos(memos: Memo[], db?: Db): Promise<Memo[]>;
+export interface NodeRdbRepoPort {
+  upsertMemos(
+    memos: Memo[],
+    instance?: RdbInstance,
+  ): Promise<Memo[]>;
 
   upsertHighlights(
     highlights: Highlight[],
-    db?: Db,
+    instance?: RdbInstance,
   ): Promise<Highlight[]>;
 
   findMemosHighlights(): {
     byTargetUrlUserId(
       targetUrl: Url,
       userId: Id,
-      db?: Db,
+      instance?: RdbInstance,
     ): Promise<{
       memos: Memo[];
       highlights: Highlight[];
@@ -30,16 +33,17 @@ export interface NodeDbRepoPort {
     byTargetUrlUserId(
       targetUrl: Url,
       userId: Id,
-      db?: Db,
+      instance?: RdbInstance,
     ): Promise<Memo[]>;
-    byIds(ids: Id[], db?: Db): Promise<Memo[]>;
+
+    byIds(ids: Id[], db?: RdbInstance): Promise<Memo[]>;
   };
 
   findMemosWithDeletedAt(): {
     byMarkdownUpdatedBetween(
       from: Timestamp,
       to: Timestamp,
-      db?: Db,
+      instance?: RdbInstance,
     ): Promise<Memo[]>;
   };
 
@@ -47,24 +51,25 @@ export interface NodeDbRepoPort {
     byTargetUrlUserId(
       targetUrl: Url,
       userId: Id,
-      db?: Db,
+      instance?: RdbInstance,
     ): Promise<Highlight[]>;
-    byIds(ids: Id[], db?: Db): Promise<Highlight[]>;
+
+    byIds(ids: Id[], db?: RdbInstance): Promise<Highlight[]>;
   };
 
   findHighlightsWithDeletedAt(): {
     byUpdatedBetween(
       from: Timestamp,
       to: Timestamp,
-      db?: Db,
+      instance?: RdbInstance,
     ): Promise<Highlight[]>;
   };
 
   deleteMemos(): {
-    byIds(ids: Id[], db?: Db): Promise<void>;
+    byIds(ids: Id[], db?: RdbInstance): Promise<void>;
   };
 
   deleteHighlights(): {
-    byIds(ids: Id[], db?: Db): Promise<void>;
+    byIds(ids: Id[], db?: RdbInstance): Promise<void>;
   };
 }

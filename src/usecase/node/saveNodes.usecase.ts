@@ -15,21 +15,21 @@ import {
   SaveNodesUsecasePort,
 } from 'src/port/in/node/saveNodes.usecase.port';
 import {
-  DB_SERVICE,
-  DbServicePort,
-} from 'src/port/out/db/db.service.port';
+  RDB_SERVICE,
+  RdbServicePort,
+} from 'src/port/out/rdb/rdb.service.port';
 import {
-  NODE_DB_REPO,
-  NodeDbRepoPort,
-} from 'src/port/out/db/node.db.repo.port';
+  NODE_RDB_REPO,
+  NodeRdbRepoPort,
+} from 'src/port/out/rdb/node.rdb.repo.port';
 
 @Injectable()
 export class SaveNodesUsecase implements SaveNodesUsecasePort {
   constructor(
-    @Inject(DB_SERVICE)
-    private readonly dbService: DbServicePort,
-    @Inject(NODE_DB_REPO)
-    private readonly nodeDbRepo: NodeDbRepoPort,
+    @Inject(RDB_SERVICE)
+    private readonly dbService: RdbServicePort,
+    @Inject(NODE_RDB_REPO)
+    private readonly nodeDbRepo: NodeRdbRepoPort,
   ) {}
 
   async execute(

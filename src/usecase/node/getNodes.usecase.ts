@@ -11,15 +11,15 @@ import {
   GetNodesUsecasePort,
 } from 'src/port/in/node/getNodes.usecase.port';
 import {
-  NODE_DB_REPO,
-  NodeDbRepoPort,
-} from 'src/port/out/db/node.db.repo.port';
+  NODE_RDB_REPO,
+  NodeRdbRepoPort,
+} from 'src/port/out/rdb/node.rdb.repo.port';
 
 @Injectable()
 export class GetNodesUsecase implements GetNodesUsecasePort {
   constructor(
-    @Inject(NODE_DB_REPO)
-    private readonly nodeDbRepo: NodeDbRepoPort,
+    @Inject(NODE_RDB_REPO)
+    private readonly nodeDbRepo: NodeRdbRepoPort,
   ) {}
 
   async execute(
