@@ -9,28 +9,28 @@ services:
           path: ./package.json
         - action: rebuild
           path: ./src/adapter/pg/orm/schema.ts
-
-    # pg container가 생성되고 npm run drizzle:push를 통해 schema 생성
-    command: >
-      sh -c "
-        until npm run drizzle:push; do
-          sleep 7;
-        done;
-        npm run start:dev
-      "
     volumes:
       - ./src:/app/src
     ports:
       - ${APP_PORT}:${APP_PORT}
     depends_on:
-      - pg
-      - meilisearch
+      pg:
+        condition: service_healthy
 
   pg:
-    image: postgres:15
+    build:
+      context: .
+      dockerfile: dockerfile.pg
     environment:
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PW}
       - POSTGRES_DB=${PG_DB}
     ports:
       - ${PG_PORT}:5432
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${PG_USER} -d ${PG_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+      start_interval: 5s

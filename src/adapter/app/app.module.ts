@@ -13,8 +13,6 @@ import { RolesGuard } from './auth/roles/roles.guard';
 import { GET_NODES_USECASE } from 'src/port/in/node/getNodes.usecase.port';
 import { GetNodesUsecase } from 'src/usecase/node/getNodes.usecase';
 import { PgModule } from '../pg/pg.module';
-import { SEARCH_NODES_USECASE } from 'src/port/in/node/searchNodes.usecase.port';
-import { SearchNodesUsecase } from 'src/usecase/node/searchNodes.usecase';
 
 @Module({
   // 현재 모듈에서 사용하려는 다른 모듈
@@ -29,7 +27,8 @@ import { SearchNodesUsecase } from 'src/usecase/node/searchNodes.usecase';
         secret: configService.getOrThrow('JWT_SECRET'),
         signOptions: { expiresIn: '2d' },
       }),
-      inject: [ConfigService], // 위의 configService 파라미터에 주입될 의존성
+      // 위의 configService 파라미터에 주입될 의존성
+      inject: [ConfigService],
     }),
 
     PgModule,
@@ -58,10 +57,6 @@ import { SearchNodesUsecase } from 'src/usecase/node/searchNodes.usecase';
     {
       provide: GET_NODES_USECASE,
       useClass: GetNodesUsecase,
-    },
-    {
-      provide: SEARCH_NODES_USECASE,
-      useClass: SearchNodesUsecase,
     },
   ],
 

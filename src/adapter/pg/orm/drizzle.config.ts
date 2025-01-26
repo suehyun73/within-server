@@ -9,6 +9,6 @@ export default defineConfig({
   verbose: true,
 
   dbCredentials: {
-    url: `postgresql://${process.env.PG_USER!}:${process.env.PG_PW!}@localhost:5432/${process.env.PG_DB!}`, // 여기서는 pg가 아닌 localhost
+    url: `postgresql://${process.env.PG_USER!}:${process.env.PG_PW!}@${process.env.PG_HOST!}:${process.env.PG_PORT!}/${process.env.PG_DB!}`,
   },
 });
