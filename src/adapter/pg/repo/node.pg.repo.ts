@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Builder } from 'builder-pattern';
 import {
   and,
-  between,
   eq,
   inArray,
   InferSelectModel,
@@ -27,13 +26,28 @@ import {
   RDB_SERVICE,
   RdbServicePort,
 } from 'src/port/out/rdb/rdb.service.port';
+import { NodeSearchRepoPort } from 'src/port/out/search/node.search.repo.port';
+import { Q } from 'src/domain/vo/q';
 
 @Injectable()
-export class NodePgRepo implements NodeRdbRepoPort {
+export class NodePgRepo
+  implements NodeRdbRepoPort, NodeSearchRepoPort
+{
   constructor(
     @Inject(RDB_SERVICE)
     private readonly rdbService: RdbServicePort,
   ) {}
+
+  async searchNodes(
+    q: Q,
+    instance = this.rdbService.getInstance(),
+  ): Promise<{ memos: Memo[]; highlights: Highlight[] }> {
+    const rows = await instance.execute(sql``);
+
+    console.log(rows);
+
+    throw new Error('Method not implemented.');
+  }
 
   async upsertMemos(
     nodes: Memo[],
@@ -65,12 +79,6 @@ export class NodePgRepo implements NodeRdbRepoPort {
           posX: sql`excluded.pos_x`,
           posY: sql`excluded.pos_y`,
           scope: sql`excluded.scope`,
-          markdownUpdatedAt: sql`
-            CASE
-              WHEN excluded.markdown <> ${schema.memos.markdown} THEN CURRENT_TIMESTAMP
-              ELSE ${schema.memos.markdownUpdatedAt}
-            END
-          `,
         },
       })
       .returning();
@@ -195,28 +203,6 @@ export class NodePgRepo implements NodeRdbRepoPort {
     };
   }
 
-  findMemosWithDeletedAt() {
-    return {
-      byMarkdownUpdatedBetween: async (
-        from: Timestamp,
-        to: Timestamp,
-        instance = this.rdbService.getInstance(),
-      ): Promise<Memo[]> => {
-        const rows = await instance.query.memos.findMany({
-          where: and(
-            between(
-              schema.memos.markdownUpdatedAt,
-              from.value,
-              to.value,
-            ),
-          ),
-        });
-
-        return this.mapToMemos(rows);
-      },
-    };
-  }
-
   findHighlights() {
     return {
       byTargetUrlUserId: async (
@@ -245,28 +231,6 @@ export class NodePgRepo implements NodeRdbRepoPort {
               ids.map((id) => id.value),
             ),
             isNull(schema.highlights.deletedAt),
-          ),
-        });
-
-        return this.mapToHighlights(rows);
-      },
-    };
-  }
-
-  findHighlightsWithDeletedAt() {
-    return {
-      byUpdatedBetween: async (
-        from: Timestamp,
-        to: Timestamp,
-        instance = this.rdbService.getInstance(),
-      ): Promise<Highlight[]> => {
-        const rows = await instance.query.highlights.findMany({
-          where: and(
-            between(
-              schema.highlights.updatedAt,
-              from.value,
-              to.value,
-            ),
           ),
         });
 
@@ -333,9 +297,6 @@ export class NodePgRepo implements NodeRdbRepoPort {
         .scope(Scope.create(row.scope))
         .createdAt(Timestamp.create(row.createdAt))
         .updatedAt(Timestamp.create(row.updatedAt))
-        .markdownUpdatedAt(
-          Timestamp.create(row.markdownUpdatedAt),
-        )
         .deletedAt(
           row.deletedAt
             ? Timestamp.create(row.deletedAt)

@@ -8,6 +8,5 @@ RUN npm install
 
 COPY . .
 
-RUN npm run drizzle:push
-
-CMD npm run start:dev
+CMD npm run drizzle:migrate \
+    && npm run start:dev

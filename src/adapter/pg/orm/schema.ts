@@ -11,18 +11,15 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-export const roleEnum = pgEnum('role', ['general', 'admin']);
-export const scopeEnum = pgEnum('scope', [
-  'domain',
-  'full-path',
-]);
-
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   googleId: varchar('google_id').notNull().unique(),
   name: varchar('name').notNull(),
   email: varchar('email').notNull(),
-  roles: roleEnum().array().notNull(),
+  roles: varchar('roles')
+    .array()
+    .$type<('general' | 'admin')[]>()
+    .notNull(),
   profileUrl: varchar('profile_url'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
@@ -43,7 +40,9 @@ export const memos = pgTable(
     targetUrl: varchar('target_url').notNull(),
     domain: varchar('domain').notNull(),
     markdown: text('markdown').notNull(),
-    scope: scopeEnum().notNull(),
+    scope: varchar('scope')
+      .$type<'domain' | 'full-path'>()
+      .notNull(),
     posX: integer('pos_x').notNull(),
     posY: integer('pos_y').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -51,14 +50,10 @@ export const memos = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
-    markdownUpdatedAt: timestamp('markdown_updated_at')
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
     deletedAt: timestamp('deleted_at'),
   },
   (table) => ({
-    idx: uniqueIndex('local_id_user_id_target_url_memo_idx')
+    idx: uniqueIndex('memos_local_id_user_id_target_url_idx')
       .on(table.localId, table.userId, table.targetUrl)
       .where(isNull(table.deletedAt)),
   }),
@@ -86,7 +81,7 @@ export const highlights = pgTable(
   },
   (table) => ({
     idx: uniqueIndex(
-      'user_id_target_url_selector_highlights_idx',
+      'highlights_user_id_target_url_selector_idx',
     )
       .on(table.userId, table.targetUrl, table.selector)
       .where(isNull(table.deletedAt)),

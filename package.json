@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start:dev": "nest start --watch | tee /dev/stdout",
     "start:dev:docker": "docker compose up --build --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -17,7 +17,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "drizzle:push": "npx drizzle-kit push --force --config=src/adapter/pg/orm/drizzle.config.ts"
+    "drizzle:push": "npx drizzle-kit push --force --config=src/adapter/pg/orm/drizzle.config.ts",
+    "drizzle:generate": "npx drizzle-kit generate --config=src/adapter/pg/orm/drizzle.config.ts --name=init",
+    "drizzle:migrate": "npx drizzle-kit migrate --config=src/adapter/pg/orm/drizzle.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

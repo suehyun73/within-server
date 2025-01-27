@@ -16,6 +16,5 @@ export class Memo {
   scope!: Scope;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
-  markdownUpdatedAt?: Timestamp;
   deletedAt?: Timestamp;
 }

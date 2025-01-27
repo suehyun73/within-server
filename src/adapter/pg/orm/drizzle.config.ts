@@ -2,6 +2,7 @@ import { defineConfig } from 'drizzle-kit';
 import path from 'path';
 
 export default defineConfig({
+  out: './src/adapter/pg/orm/migration',
   schema: path.join(__dirname, 'schema.ts'),
   dialect: 'postgresql',
 

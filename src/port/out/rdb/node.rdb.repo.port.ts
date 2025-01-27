@@ -39,14 +39,6 @@ export interface NodeRdbRepoPort {
     byIds(ids: Id[], db?: RdbInstance): Promise<Memo[]>;
   };
 
-  findMemosWithDeletedAt(): {
-    byMarkdownUpdatedBetween(
-      from: Timestamp,
-      to: Timestamp,
-      instance?: RdbInstance,
-    ): Promise<Memo[]>;
-  };
-
   findHighlights(): {
     byTargetUrlUserId(
       targetUrl: Url,
@@ -55,14 +47,6 @@ export interface NodeRdbRepoPort {
     ): Promise<Highlight[]>;
 
     byIds(ids: Id[], db?: RdbInstance): Promise<Highlight[]>;
-  };
-
-  findHighlightsWithDeletedAt(): {
-    byUpdatedBetween(
-      from: Timestamp,
-      to: Timestamp,
-      instance?: RdbInstance,
-    ): Promise<Highlight[]>;
   };
 
   deleteMemos(): {
