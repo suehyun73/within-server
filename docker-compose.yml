@@ -25,6 +25,8 @@ services:
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PW}
       - POSTGRES_DB=${PG_DB}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
     ports:
       - ${PG_PORT}:5432
     healthcheck:
@@ -34,3 +36,6 @@ services:
       retries: 5
       start_period: 30s
       start_interval: 5s
+
+volumes:
+  pg_data:
