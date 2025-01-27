@@ -21,7 +21,7 @@ import { NodeRdbRepoPort } from 'src/port/out/rdb/node.rdb.repo.port';
 import { Highlight } from 'src/domain/entity/highlight';
 import { Selector } from 'src/domain/vo/selector';
 import { Span } from 'src/domain/vo/span';
-import * as schema from '../orm/schema';
+import * as schema from '../drizzle/schema';
 import {
   RDB_SERVICE,
   RdbServicePort,

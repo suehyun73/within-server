@@ -2,7 +2,6 @@ import { isNull, relations } from 'drizzle-orm';
 import {
   integer,
   json,
-  pgEnum,
   pgTable,
   serial,
   text,

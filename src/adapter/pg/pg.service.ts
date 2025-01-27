@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import * as schema from './orm/schema';
+import * as schema from './drizzle/schema';
 import { Pool } from 'pg';
 import { RdbInstance } from 'src/shared/type/rdbInstance.type';
 import { RdbServicePort } from 'src/port/out/rdb/rdb.service.port';

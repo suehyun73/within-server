@@ -17,9 +17,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "drizzle:push": "npx drizzle-kit push --force --config=src/adapter/pg/orm/drizzle.config.ts",
-    "drizzle:generate": "npx drizzle-kit generate --config=src/adapter/pg/orm/drizzle.config.ts --name=init",
-    "drizzle:migrate": "npx drizzle-kit migrate --config=src/adapter/pg/orm/drizzle.config.ts"
+    "drizzle:push": "npx drizzle-kit push --force --config=src/adapter/pg/drizzle/config.ts",
+    "drizzle:generate": "npx drizzle-kit generate --config=src/adapter/pg/drizzle/config.ts --name=init",
+    "drizzle:migrate": "npx drizzle-kit migrate --config=src/adapter/pg/drizzle/config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -34,13 +34,10 @@
     "class-validator": "^0.14.1",
     "drizzle-orm": "^0.38.3",
     "jsonwebtoken": "^9.0.2",
-    "meilisearch": "^0.48.2",
-    "nestjs-meilisearch": "^2.1.8",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.13.1",
-    "pg-logical-replication": "^2.0.7",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "zod": "^3.24.1"

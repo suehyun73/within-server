@@ -10,7 +10,7 @@ import { Role } from 'src/domain/vo/role';
 import { Timestamp } from 'src/domain/vo/timestamp';
 import { Url } from 'src/domain/vo/url';
 import { UserRdbRepoPort } from 'src/port/out/rdb/user.rdb.repo.port';
-import * as schema from '../orm/schema';
+import * as schema from '../drizzle/schema';
 import {
   RDB_SERVICE,
   RdbServicePort,
