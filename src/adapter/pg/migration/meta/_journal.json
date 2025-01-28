@@ -8,6 +8,13 @@
       "when": 1738013511143,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1738100372641,
+      "tag": "0001_wal2json",
+      "breakpoints": true
     }
   ]
 }

@@ -26,28 +26,13 @@ import {
   RDB_SERVICE,
   RdbServicePort,
 } from 'src/port/out/rdb/rdb.service.port';
-import { NodeSearchRepoPort } from 'src/port/out/search/node.search.repo.port';
-import { Q } from 'src/domain/vo/q';
 
 @Injectable()
-export class NodePgRepo
-  implements NodeRdbRepoPort, NodeSearchRepoPort
-{
+export class NodePgRepo implements NodeRdbRepoPort {
   constructor(
     @Inject(RDB_SERVICE)
     private readonly rdbService: RdbServicePort,
   ) {}
-
-  async searchNodes(
-    q: Q,
-    instance = this.rdbService.getInstance(),
-  ): Promise<{ memos: Memo[]; highlights: Highlight[] }> {
-    const rows = await instance.execute(sql``);
-
-    console.log(rows);
-
-    throw new Error('Method not implemented.');
-  }
 
   async upsertMemos(
     nodes: Memo[],
