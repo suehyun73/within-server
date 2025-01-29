@@ -18,13 +18,11 @@ services:
     depends_on:
       pg:
         condition: service_healthy
-      meili:
+      ms:
         condition: service_healthy
 
   pg:
-    build:
-      context: .
-      dockerfile: dockerfile.pg
+    image: postgres:15-alpine
     environment:
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PW}
@@ -41,15 +39,15 @@ services:
       start_period: 15s
       start_interval: 3s
 
-  meili:
+  ms:
     image: getmeili/meilisearch:v1.12.7
     environment:
-      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      - MEILI_MASTER_KEY=${MS_MASTER_KEY}
       - MEILI_LOG_LEVEL=ERROR
     ports:
-      - ${MEILI_PORT}:7700
+      - ${MS_PORT}:7700
     volumes:
-      - meili_data:/data.ms
+      - ms_data:/data.ms
     healthcheck:
       test:
         [
@@ -64,4 +62,4 @@ services:
 
 volumes:
   pg_data:
-  meili_data:
+  ms_data:
