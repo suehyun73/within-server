@@ -1,0 +1,4 @@
+export const BATCH_CONST = {
+  BATCH_SIZE: 100,
+  BATCH_INTERVAL_SECONDS: 5,
+};

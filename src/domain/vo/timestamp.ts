@@ -31,6 +31,14 @@ export class Timestamp {
     return new Timestamp(date);
   }
 
+  static fromSeconds(value: number) {
+    const date = new Date(value * 1000);
+    if (!Timestamp.isValid(date))
+      throw new BadRequestException();
+
+    return Timestamp.create(date);
+  }
+
   static now() {
     return Timestamp.create(new Date());
   }

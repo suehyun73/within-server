@@ -15,103 +15,148 @@ import { Timestamp } from 'src/domain/vo/timestamp';
 import { Selector } from 'src/domain/vo/selector';
 import { Span } from 'src/domain/vo/span';
 import { Meilisearch as MsInstance } from 'meilisearch';
+import { MS_CONST } from '../ms.const';
+import { Cursor } from 'src/domain/vo/cursor';
 
 @Injectable()
 export class NodeMsRepo
   implements NodeSearchRepoPort, OnModuleInit
 {
-  private readonly MEMO_IDX = 'memos';
-  private readonly HIGHLIGHT_IDX = 'highlights';
-  private readonly BATCH_SIZE = 100;
-  private readonly HIGHLIGHT_TAG = '<hit>';
-
   constructor(private readonly msService: MsService) {}
 
   async onModuleInit() {
-    await this.createIndexes();
-  }
-
-  private async createIndexes() {
     const instance = this.msService.getInstance();
 
     await Promise.all([
-      this.createMemoIndex(instance),
-      this.createHighlightIndex(instance),
+      (await this.isMemoIndexExist(instance))
+        ? Promise.resolve()
+        : this.createMemoIndex(instance),
+      (await this.isHighlightIndexExist(instance))
+        ? Promise.resolve()
+        : this.createHighlightIndex(instance),
     ]);
   }
 
+  private async isMemoIndexExist(instance: MsInstance) {
+    try {
+      await instance.getIndex(MS_CONST.INDEX.MEMO);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async isHighlightIndexExist(instance: MsInstance) {
+    try {
+      await instance.getIndex(MS_CONST.INDEX.HIGHLIGHT);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   private async createMemoIndex(instance: MsInstance) {
-    await instance.createIndex(this.MEMO_IDX, {
+    await instance.createIndex(MS_CONST.INDEX.MEMO, {
       primaryKey: 'id',
     });
-
-    await instance.index(this.MEMO_IDX).updateSettings({
+    await instance.index(MS_CONST.INDEX.MEMO).updateSettings({
       searchableAttributes: ['markdown'],
       filterableAttributes: ['userId', 'deletedAt'],
     });
   }
 
   private async createHighlightIndex(instance: MsInstance) {
-    await instance.createIndex(this.HIGHLIGHT_IDX, {
+    await instance.createIndex(MS_CONST.INDEX.HIGHLIGHT, {
       primaryKey: 'id',
     });
-
-    await instance.index(this.HIGHLIGHT_IDX).updateSettings({
-      searchableAttributes: ['spans.text'],
-      filterableAttributes: ['userId', 'deletedAt', 'targetUrl'],
-    });
+    await instance
+      .index(MS_CONST.INDEX.HIGHLIGHT)
+      .updateSettings({
+        searchableAttributes: ['spans.text'],
+        filterableAttributes: ['userId', 'deletedAt'],
+      });
   }
 
   async searchNodes(
     q: Q,
     userId: Id,
-  ): Promise<{ memos: Memo[]; highlights: Highlight[] }> {
+    cursor: Cursor,
+    limit: number,
+  ): Promise<
+    (
+      | { score: number; type: 'memo'; entity: Memo }
+      | { score: number; type: 'highlight'; entity: Highlight }
+    )[]
+  > {
     const instance = this.msService.getInstance();
 
-    const memoIdx = instance.index(this.MEMO_IDX);
-    const highlightIdx = instance.index(this.HIGHLIGHT_IDX);
-
-    const [memos, highlights] = await Promise.all([
-      memoIdx.search(q.value, {
-        filter: [
-          `userId = ${userId.value}`,
-          'deletedAt IS NULL',
+    const [memoResult, highlightResult] = (
+      await instance.multiSearch({
+        queries: [
+          {
+            indexUid: MS_CONST.INDEX.MEMO,
+            q: q.value,
+            filter: [
+              `userId = ${userId.value}`,
+              'deletedAt IS NULL',
+            ],
+            attributesToHighlight: ['markdown'],
+            highlightPreTag: MS_CONST.HIT_PRE_TAG,
+            highlightPostTag: MS_CONST.HIT_POST_TAG,
+            showRankingScore: true,
+            rankingScoreThreshold: MS_CONST.MIN_SCORE,
+            limit: limit,
+            offset: cursor.value * limit,
+          },
+          {
+            indexUid: MS_CONST.INDEX.HIGHLIGHT,
+            q: q.value,
+            filter: [
+              `userId = ${userId.value}`,
+              'deletedAt IS NULL',
+            ],
+            attributesToHighlight: ['spans.text'],
+            highlightPreTag: MS_CONST.HIT_PRE_TAG,
+            highlightPostTag: MS_CONST.HIT_POST_TAG,
+            rankingScoreThreshold: MS_CONST.MIN_SCORE,
+            showRankingScore: true,
+            limit: limit,
+            offset: cursor.value * limit,
+          },
         ],
-        attributesToHighlight: ['markdown'],
-        highlightPreTag: this.HIGHLIGHT_TAG,
-        highlightPostTag: this.HIGHLIGHT_TAG.replace('<', '</'),
-      }),
-      highlightIdx.search(q.value, {
-        filter: [
-          `userId = ${userId.value}`,
-          'deletedAt IS NULL',
-        ],
-        attributesToHighlight: ['spans.text'],
-        highlightPreTag: this.HIGHLIGHT_TAG,
-        highlightPostTag: this.HIGHLIGHT_TAG.replace('<', '</'),
-      }),
-    ]);
+      })
+    ).results;
 
-    return {
-      memos: this.mapToMemos(
-        memos.hits.map((hit) => hit._formatted),
-      ),
-      highlights: this.mapToHighlights(
-        highlights.hits.map((hit) => ({
+    return [
+      ...memoResult.hits.map((hit) => ({
+        score: Number(hit._rankingScore!.toFixed(2)),
+        type: 'memo' as const,
+        entity: this.mapToMemo(hit._formatted),
+      })),
+      ...highlightResult.hits.map((hit) => ({
+        score: Number(hit._rankingScore!.toFixed(2)),
+        type: 'highlight' as const,
+        entity: this.mapToHighlight({
           ...hit._formatted,
           spans: hit._formatted!.spans.filter((span) =>
-            span.text.includes(this.HIGHLIGHT_TAG),
+            span.text.includes(MS_CONST.HIT_PRE_TAG),
           ),
-        })),
-      ),
-    };
+        }),
+      })),
+    ]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
   }
 
-  async batchMemos(memos: Memo[]): Promise<void> {
+  async batchMemos(
+    memos: Memo[],
+    batchSize: number,
+  ): Promise<void> {
     if (!memos.length) return;
 
-    const instance = this.msService.getInstance();
-    const memoIdx = instance.index(this.MEMO_IDX);
+    const memoIndex = this.msService
+      .getInstance()
+      .index(MS_CONST.INDEX.MEMO);
 
     const docs = memos.map((memo) => ({
       id: String(memo.id!.value),
@@ -127,14 +172,18 @@ export class NodeMsRepo
       deletedAt: memo.deletedAt?.value || null,
     }));
 
-    await memoIdx.addDocumentsInBatches(docs, this.BATCH_SIZE);
+    await memoIndex.addDocumentsInBatches(docs, batchSize);
   }
 
-  async batchHighlights(highlights: Highlight[]): Promise<void> {
+  async batchHighlights(
+    highlights: Highlight[],
+    batchSize: number,
+  ): Promise<void> {
     if (!highlights.length) return;
 
-    const instance = this.msService.getInstance();
-    const highlightIdx = instance.index(this.HIGHLIGHT_IDX);
+    const highlightIndex = this.msService
+      .getInstance()
+      .index(MS_CONST.INDEX.HIGHLIGHT);
 
     const docs = highlights.map((highlight) => ({
       id: String(highlight.id!.value),
@@ -147,61 +196,54 @@ export class NodeMsRepo
       deletedAt: highlight.deletedAt?.value || null,
     }));
 
-    await highlightIdx.addDocumentsInBatches(
-      docs,
-      this.BATCH_SIZE,
-    );
+    await highlightIndex.addDocumentsInBatches(docs, batchSize);
   }
 
-  private mapToMemos(rows: any): Memo[] {
-    return rows.map((row) =>
-      Builder(Memo)
-        .id(Id.create(parseInt(row.id)))
-        .localId(LocalId.create(row.localId))
-        .userId(Id.create(parseInt(row.userId)))
-        .targetUrl(Url.create(row.targetUrl))
-        .markdown(Markdown.create(row.markdown))
-        .pos(
-          Pos.create({
-            x: parseFloat(row.posX),
-            y: parseFloat(row.posY),
+  private mapToMemo(row): Memo {
+    return Builder(Memo)
+      .id(Id.create(parseInt(row.id)))
+      .localId(LocalId.create(row.localId))
+      .userId(Id.create(parseInt(row.userId)))
+      .targetUrl(Url.create(row.targetUrl))
+      .markdown(Markdown.create(row.markdown))
+      .pos(
+        Pos.create({
+          x: parseFloat(row.posX),
+          y: parseFloat(row.posY),
+        }),
+      )
+      .scope(Scope.create(row.scope))
+      .createdAt(Timestamp.fromString(row.createdAt))
+      .updatedAt(Timestamp.fromString(row.updatedAt))
+      .deletedAt(
+        row.deletedAt
+          ? Timestamp.fromString(row.deletedAt)
+          : undefined,
+      )
+      .build();
+  }
+
+  private mapToHighlight(row: any): Highlight {
+    return Builder(Highlight)
+      .id(Id.create(parseInt(row.id)))
+      .userId(Id.create(parseInt(row.userId)))
+      .targetUrl(Url.create(row.targetUrl))
+      .selector(Selector.create(row.selector))
+      .spans(
+        row.spans.map((span) =>
+          Span.create({
+            text: span.text,
+            start: parseInt(span.start),
           }),
-        )
-        .scope(Scope.create(row.scope))
-        .createdAt(Timestamp.fromString(row.createdAt))
-        .updatedAt(Timestamp.fromString(row.updatedAt))
-        .deletedAt(
-          row.deletedAt
-            ? Timestamp.fromString(row.deletedAt)
-            : undefined,
-        )
-        .build(),
-    );
-  }
-
-  private mapToHighlights(rows: any): Highlight[] {
-    return rows.map((row) =>
-      Builder(Highlight)
-        .id(Id.create(parseInt(row.id)))
-        .userId(Id.create(parseInt(row.userId)))
-        .targetUrl(Url.create(row.targetUrl))
-        .selector(Selector.create(row.selector))
-        .spans(
-          row.spans.map((span) =>
-            Span.create({
-              text: span.text,
-              start: parseInt(span.start),
-            }),
-          ),
-        )
-        .createdAt(Timestamp.fromString(row.createdAt))
-        .updatedAt(Timestamp.fromString(row.updatedAt))
-        .deletedAt(
-          row.deletedAt
-            ? Timestamp.fromString(row.deletedAt)
-            : undefined,
-        )
-        .build(),
-    );
+        ),
+      )
+      .createdAt(Timestamp.fromString(row.createdAt))
+      .updatedAt(Timestamp.fromString(row.updatedAt))
+      .deletedAt(
+        row.deletedAt
+          ? Timestamp.fromString(row.deletedAt)
+          : undefined,
+      )
+      .build();
   }
 }
