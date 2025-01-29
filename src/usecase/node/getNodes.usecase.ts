@@ -31,7 +31,7 @@ export class GetNodesUsecase implements GetNodesUsecasePort {
 
     // 데이터 조회
     const { memos, highlights } = await this.nodeDbRepo
-      .findMemosHighlights()
+      .findNodes()
       .byTargetUrlUserId(targetUrl, client.id);
 
     // 해당 데이터가 없으면 404

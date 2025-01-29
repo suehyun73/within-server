@@ -13,6 +13,9 @@ import { RolesGuard } from './auth/roles/roles.guard';
 import { GET_NODES_USECASE } from 'src/port/in/node/getNodes.usecase.port';
 import { GetNodesUsecase } from 'src/usecase/node/getNodes.usecase';
 import { PgModule } from '../pg/pg.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { BatchService } from './scheduler/batch.service';
+import { MsModule } from '../ms/ms.module';
 
 @Module({
   // 현재 모듈에서 사용하려는 다른 모듈
@@ -32,6 +35,8 @@ import { PgModule } from '../pg/pg.module';
     }),
 
     PgModule,
+    MsModule,
+    ScheduleModule.forRoot(),
   ],
 
   controllers: [NodeController, Ouath2Controller],
@@ -48,6 +53,9 @@ import { PgModule } from '../pg/pg.module';
 
     // roles auth 모듈
     RolesGuard,
+
+    // scheduler 관련 서비스
+    BatchService,
 
     // usecase 클래스
     {

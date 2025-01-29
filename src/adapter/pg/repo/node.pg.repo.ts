@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Builder } from 'builder-pattern';
 import {
   and,
+  between,
   eq,
   inArray,
   InferSelectModel,
@@ -101,7 +102,7 @@ export class NodePgRepo implements NodeRdbRepoPort {
     return this.mapToHighlights(rows);
   }
 
-  findMemosHighlights() {
+  findNodes() {
     return {
       byTargetUrlUserId: async (
         targetUrl: Url,
@@ -138,6 +139,51 @@ export class NodePgRepo implements NodeRdbRepoPort {
             eq(schema.users.id, userId.value),
             isNull(schema.users.deletedAt),
           ),
+        });
+
+        if (!result) {
+          return { memos: [], highlights: [] };
+        }
+
+        return {
+          memos: this.mapToMemos(result.memos),
+          highlights: this.mapToHighlights(result.highlights),
+        };
+      },
+    };
+  }
+
+  findNodesIncludedDeleted() {
+    return {
+      betweenUpdatedAt: async (
+        from: Timestamp,
+        to: Timestamp,
+        instance = this.rdbService.getInstance(),
+      ): Promise<{ memos: Memo[]; highlights: Highlight[] }> => {
+        const result = await instance.query.users.findFirst({
+          columns: {},
+          with: {
+            memos: {
+              where: or(
+                and(
+                  between(
+                    schema.memos.updatedAt,
+                    from.value,
+                    to.value,
+                  ),
+                ),
+              ),
+            },
+            highlights: {
+              where: and(
+                between(
+                  schema.highlights.updatedAt,
+                  from.value,
+                  to.value,
+                ),
+              ),
+            },
+          },
         });
 
         if (!result) {

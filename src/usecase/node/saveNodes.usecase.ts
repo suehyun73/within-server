@@ -66,7 +66,7 @@ export class SaveNodesUsecase implements SaveNodesUsecasePort {
       memos: existingMemos,
       highlights: existingHighlights,
     } = await this.nodeDbRepo
-      .findMemosHighlights()
+      .findNodes()
       .byTargetUrlUserId(url, client.id);
 
     // 삭제할 node id와 highlight id 추출
