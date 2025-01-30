@@ -39,23 +39,23 @@ export class SaveNodesUsecase implements SaveNodesUsecasePort {
     // dto를 엔티티로 변환
     const url = Url.create(dto.url);
 
-    const incomingMemos = dto.memos.map((m) =>
+    const incomingMemos = dto.memos.map((memo) =>
       Builder(Memo)
-        .localId(LocalId.create(m.localId))
+        .localId(LocalId.create(memo.localId))
         .userId(client.id)
         .targetUrl(url)
-        .markdown(Markdown.create(m.markdown))
-        .scope(Scope.create(m.scope))
-        .pos(Pos.create(m.pos))
+        .markdown(Markdown.create(memo.markdown))
+        .scope(Scope.create(memo.scope))
+        .pos(Pos.create(memo.pos))
         .build(),
     );
 
-    const incomingHighlights = dto.highlights.map((h) =>
+    const incomingHighlights = dto.highlights.map((highlight) =>
       Builder(Highlight)
         .userId(client.id)
         .targetUrl(url)
-        .selector(Selector.create(h.selector))
-        .spans(h.spans.map((span) => Span.create(span)))
+        .selector(Selector.create(highlight.selector))
+        .spans(highlight.spans.map((span) => Span.create(span)))
         .build()
         // span에서 겹치는 부분 병합 처리
         .mergeSpans(),
@@ -66,7 +66,7 @@ export class SaveNodesUsecase implements SaveNodesUsecasePort {
       memos: existingMemos,
       highlights: existingHighlights,
     } = await this.nodeDbRepo
-      .findMemosHighlights()
+      .findNodes()
       .byTargetUrlUserId(url, client.id);
 
     // 삭제할 node id와 highlight id 추출
@@ -158,7 +158,9 @@ export class SaveNodesUsecase implements SaveNodesUsecasePort {
   ) {
     return incomingMemos.filter((incomingMemo) => {
       const existingMemo = existingMemos.find(
-        (m) => m.localId.value === incomingMemo.localId.value,
+        (existingMemo) =>
+          existingMemo.localId.value ===
+          incomingMemo.localId.value,
       );
 
       // 새로운 memo는 포함
@@ -204,6 +206,6 @@ export class SaveNodesUsecase implements SaveNodesUsecasePort {
               existingMemo.localId.value,
           ),
       )
-      .map((m) => m.id!);
+      .map((memo) => memo.id!);
   }
 }

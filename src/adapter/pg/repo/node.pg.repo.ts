@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Builder } from 'builder-pattern';
 import {
   and,
+  between,
   eq,
   inArray,
   InferSelectModel,
@@ -26,28 +27,13 @@ import {
   RDB_SERVICE,
   RdbServicePort,
 } from 'src/port/out/rdb/rdb.service.port';
-import { NodeSearchRepoPort } from 'src/port/out/search/node.search.repo.port';
-import { Q } from 'src/domain/vo/q';
 
 @Injectable()
-export class NodePgRepo
-  implements NodeRdbRepoPort, NodeSearchRepoPort
-{
+export class NodePgRepo implements NodeRdbRepoPort {
   constructor(
     @Inject(RDB_SERVICE)
     private readonly rdbService: RdbServicePort,
   ) {}
-
-  async searchNodes(
-    q: Q,
-    instance = this.rdbService.getInstance(),
-  ): Promise<{ memos: Memo[]; highlights: Highlight[] }> {
-    const rows = await instance.execute(sql``);
-
-    console.log(rows);
-
-    throw new Error('Method not implemented.');
-  }
 
   async upsertMemos(
     nodes: Memo[],
@@ -116,7 +102,7 @@ export class NodePgRepo
     return this.mapToHighlights(rows);
   }
 
-  findMemosHighlights() {
+  findNodes() {
     return {
       byTargetUrlUserId: async (
         targetUrl: Url,
@@ -153,6 +139,51 @@ export class NodePgRepo
             eq(schema.users.id, userId.value),
             isNull(schema.users.deletedAt),
           ),
+        });
+
+        if (!result) {
+          return { memos: [], highlights: [] };
+        }
+
+        return {
+          memos: this.mapToMemos(result.memos),
+          highlights: this.mapToHighlights(result.highlights),
+        };
+      },
+    };
+  }
+
+  findNodesIncludedDeleted() {
+    return {
+      betweenUpdatedAt: async (
+        from: Timestamp,
+        to: Timestamp,
+        instance = this.rdbService.getInstance(),
+      ): Promise<{ memos: Memo[]; highlights: Highlight[] }> => {
+        const result = await instance.query.users.findFirst({
+          columns: {},
+          with: {
+            memos: {
+              where: or(
+                and(
+                  between(
+                    schema.memos.updatedAt,
+                    from.value,
+                    to.value,
+                  ),
+                ),
+              ),
+            },
+            highlights: {
+              where: and(
+                between(
+                  schema.highlights.updatedAt,
+                  from.value,
+                  to.value,
+                ),
+              ),
+            },
+          },
         });
 
         if (!result) {

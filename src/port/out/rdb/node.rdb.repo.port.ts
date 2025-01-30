@@ -18,10 +18,21 @@ export interface NodeRdbRepoPort {
     instance?: RdbInstance,
   ): Promise<Highlight[]>;
 
-  findMemosHighlights(): {
+  findNodes(): {
     byTargetUrlUserId(
       targetUrl: Url,
       userId: Id,
+      instance?: RdbInstance,
+    ): Promise<{
+      memos: Memo[];
+      highlights: Highlight[];
+    }>;
+  };
+
+  findNodesIncludedDeleted(): {
+    betweenUpdatedAt(
+      from: Timestamp,
+      to: Timestamp,
       instance?: RdbInstance,
     ): Promise<{
       memos: Memo[];

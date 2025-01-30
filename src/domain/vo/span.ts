@@ -21,7 +21,8 @@ export class Span {
   }
 
   static create(value: z.infer<typeof Span.schema>) {
-    if (!Span.isValid(value)) throw new BadRequestException();
+    if (!Span.isValid(value))
+      throw new BadRequestException('먕');
     return new Span(value);
   }
 }

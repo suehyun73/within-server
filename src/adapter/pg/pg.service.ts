@@ -9,7 +9,7 @@ import { RdbServicePort } from 'src/port/out/rdb/rdb.service.port';
 @Injectable()
 export class PgService implements RdbServicePort {
   private readonly pool: Pool;
-  private readonly db: RdbInstance;
+  private readonly instance: RdbInstance;
 
   constructor(private readonly configService: ConfigService) {
     this.pool = new Pool({
@@ -20,17 +20,17 @@ export class PgService implements RdbServicePort {
       database: this.configService.getOrThrow('PG_DB'),
     });
 
-    this.db = drizzle(this.pool, { schema });
+    this.instance = drizzle(this.pool, { schema });
   }
 
   getInstance() {
-    return this.db;
+    return this.instance;
   }
 
   async transaction<T>(
     callback: (tx: RdbInstance) => Promise<T>,
   ): Promise<T> {
-    const db = this.getInstance();
-    return await db.transaction(callback);
+    const instance = this.getInstance();
+    return await instance.transaction(callback);
   }
 }

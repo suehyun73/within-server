@@ -8,7 +8,9 @@ services:
         - action: rebuild
           path: ./package.json
         - action: rebuild
-          path: ./src/adapter/pg/orm/schema.ts
+          path: ./src/adapter/pg/migration
+        - action: rebuild
+          path: ./src/adapter/pg/drizzle
     volumes:
       - ./src:/app/src
     ports:
@@ -16,11 +18,11 @@ services:
     depends_on:
       pg:
         condition: service_healthy
+      ms:
+        condition: service_healthy
 
   pg:
-    build:
-      context: .
-      dockerfile: dockerfile.pg
+    image: postgres:15-alpine
     environment:
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PW}
@@ -31,11 +33,33 @@ services:
       - ${PG_PORT}:5432
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${PG_USER} -d ${PG_DB}']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-      start_interval: 5s
+      interval: 3s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+      start_interval: 3s
+
+  ms:
+    image: getmeili/meilisearch:v1.12.7
+    environment:
+      - MEILI_MASTER_KEY=${MS_MASTER_KEY}
+      - MEILI_LOG_LEVEL=ERROR
+    ports:
+      - ${MS_PORT}:7700
+    volumes:
+      - ms_data:/data.ms
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'curl http://localhost:7700/health || exit 1',
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+      start_interval: 3s
 
 volumes:
   pg_data:
+  ms_data:
