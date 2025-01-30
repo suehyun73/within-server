@@ -42,21 +42,21 @@ export class GetNodesUsecase implements GetNodesUsecasePort {
     // dto out에 맞게 매핑
     return Builder(GetNodesDtoOut)
       .memos(
-        memos.map((m) => ({
-          localId: m.localId.value,
-          markdown: m.markdown.value,
-          pos: m.pos.value,
-          scope: m.scope.value,
-          createdAt: m.createdAt!.value,
-          updatedAt: m.updatedAt!.value,
+        memos.map((memo) => ({
+          localId: memo.localId.value,
+          markdown: memo.markdown.value,
+          pos: memo.pos.value,
+          scope: memo.scope.value,
+          createdAt: memo.createdAt!.value,
+          updatedAt: memo.updatedAt!.value,
         })),
       )
       .highlights(
-        highlights.map((h) => ({
-          selector: h.selector.value,
-          spans: h.spans.map((span) => span.value),
-          createdAt: h.createdAt!.value,
-          updatedAt: h.updatedAt!.value,
+        highlights.map((highlight) => ({
+          selector: highlight.selector.value,
+          spans: highlight.spans.map((span) => span.value),
+          createdAt: highlight.createdAt!.value,
+          updatedAt: highlight.updatedAt!.value,
         })),
       )
       .build();

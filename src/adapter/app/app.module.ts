@@ -16,6 +16,8 @@ import { PgModule } from '../pg/pg.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BatchService } from './scheduler/batch.service';
 import { MsModule } from '../ms/ms.module';
+import { SEARCH_NODES_USECASE } from 'src/port/in/node/searchNodes.usecase.port';
+import { SearchNodesUsecase } from 'src/usecase/node/searchNodes.usecase';
 
 @Module({
   // 현재 모듈에서 사용하려는 다른 모듈
@@ -65,6 +67,10 @@ import { MsModule } from '../ms/ms.module';
     {
       provide: GET_NODES_USECASE,
       useClass: GetNodesUsecase,
+    },
+    {
+      provide: SEARCH_NODES_USECASE,
+      useClass: SearchNodesUsecase,
     },
   ],
 

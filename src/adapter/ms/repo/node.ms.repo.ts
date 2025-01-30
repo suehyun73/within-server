@@ -17,6 +17,7 @@ import { Span } from 'src/domain/vo/span';
 import { Meilisearch as MsInstance } from 'meilisearch';
 import { MS_CONST } from '../ms.const';
 import { Cursor } from 'src/domain/vo/cursor';
+import { Limit } from 'src/domain/vo/limit';
 
 @Injectable()
 export class NodeMsRepo
@@ -81,11 +82,21 @@ export class NodeMsRepo
     q: Q,
     userId: Id,
     cursor: Cursor,
-    limit: number,
+    limit: Limit,
   ): Promise<
     (
-      | { score: number; type: 'memo'; entity: Memo }
-      | { score: number; type: 'highlight'; entity: Highlight }
+      | {
+          type: 'memo';
+          entity: Memo;
+          markdownWithTag: Markdown;
+          score: number;
+        }
+      | {
+          type: 'highlight';
+          entity: Highlight;
+          spansWithTag: Span[];
+          score: number;
+        }
     )[]
   > {
     const instance = this.msService.getInstance();
@@ -105,8 +116,8 @@ export class NodeMsRepo
             highlightPostTag: MS_CONST.HIT_POST_TAG,
             showRankingScore: true,
             rankingScoreThreshold: MS_CONST.MIN_SCORE,
-            limit: limit,
-            offset: cursor.value * limit,
+            limit: limit.value,
+            offset: cursor.value * limit.value,
           },
           {
             indexUid: MS_CONST.INDEX.HIGHLIGHT,
@@ -120,32 +131,45 @@ export class NodeMsRepo
             highlightPostTag: MS_CONST.HIT_POST_TAG,
             rankingScoreThreshold: MS_CONST.MIN_SCORE,
             showRankingScore: true,
-            limit: limit,
-            offset: cursor.value * limit,
+            limit: limit.value,
+            offset: cursor.value * limit.value,
           },
         ],
       })
     ).results;
 
+    const formatScore = (score: number) =>
+      Number(score.toFixed(2));
+    const createSpan = (span: { text: string; start: number }) =>
+      Span.create({
+        text: span.text,
+        start: Number(span.start),
+      });
+
     return [
       ...memoResult.hits.map((hit) => ({
-        score: Number(hit._rankingScore!.toFixed(2)),
         type: 'memo' as const,
-        entity: this.mapToMemo(hit._formatted),
+        entity: this.mapToMemo(hit),
+        markdownWithTag: Markdown.create(
+          hit._formatted!.markdown,
+        ),
+        score: formatScore(hit._rankingScore!),
       })),
-      ...highlightResult.hits.map((hit) => ({
-        score: Number(hit._rankingScore!.toFixed(2)),
-        type: 'highlight' as const,
-        entity: this.mapToHighlight({
-          ...hit._formatted,
-          spans: hit._formatted!.spans.filter((span) =>
-            span.text.includes(MS_CONST.HIT_PRE_TAG),
-          ),
-        }),
-      })),
+      ...highlightResult.hits.map((hit) => {
+        return {
+          type: 'highlight' as const,
+          entity: this.mapToHighlight(hit),
+          spansWithTag: hit
+            ._formatted!.spans.filter((span) =>
+              span.text.includes(MS_CONST.HIT_PRE_TAG),
+            )
+            .map(createSpan),
+          score: formatScore(hit._rankingScore!),
+        };
+      }),
     ]
       .sort((a, b) => b.score - a.score)
-      .slice(0, 6);
+      .slice(0, limit.value);
   }
 
   async batchMemos(
@@ -158,21 +182,22 @@ export class NodeMsRepo
       .getInstance()
       .index(MS_CONST.INDEX.MEMO);
 
-    const docs = memos.map((memo) => ({
-      id: String(memo.id!.value),
-      localId: memo.localId.value,
-      userId: memo.userId.value,
-      targetUrl: memo.targetUrl.value,
-      markdown: memo.markdown.value,
-      scope: memo.scope.value,
-      posX: memo.pos.value.x,
-      posY: memo.pos.value.y,
-      createdAt: memo.createdAt!.value,
-      updatedAt: memo.updatedAt!.value,
-      deletedAt: memo.deletedAt?.value || null,
-    }));
-
-    await memoIndex.addDocumentsInBatches(docs, batchSize);
+    await memoIndex.addDocumentsInBatches(
+      memos.map((memo) => ({
+        id: String(memo.id!.value),
+        localId: memo.localId.value,
+        userId: memo.userId.value,
+        targetUrl: memo.targetUrl.value,
+        markdown: memo.markdown.value,
+        scope: memo.scope.value,
+        posX: memo.pos.value.x,
+        posY: memo.pos.value.y,
+        createdAt: memo.createdAt!.value,
+        updatedAt: memo.updatedAt!.value,
+        deletedAt: memo.deletedAt?.value || null,
+      })),
+      batchSize,
+    );
   }
 
   async batchHighlights(
@@ -185,31 +210,32 @@ export class NodeMsRepo
       .getInstance()
       .index(MS_CONST.INDEX.HIGHLIGHT);
 
-    const docs = highlights.map((highlight) => ({
-      id: String(highlight.id!.value),
-      userId: highlight.userId.value,
-      targetUrl: highlight.targetUrl.value,
-      selector: highlight.selector.value,
-      spans: highlight.spans.map((span) => span.value),
-      createdAt: highlight.createdAt!.value,
-      updatedAt: highlight.updatedAt!.value,
-      deletedAt: highlight.deletedAt?.value || null,
-    }));
-
-    await highlightIndex.addDocumentsInBatches(docs, batchSize);
+    await highlightIndex.addDocumentsInBatches(
+      highlights.map((highlight) => ({
+        id: String(highlight.id!.value),
+        userId: highlight.userId.value,
+        targetUrl: highlight.targetUrl.value,
+        selector: highlight.selector.value,
+        spans: highlight.spans.map((span) => span.value),
+        createdAt: highlight.createdAt!.value,
+        updatedAt: highlight.updatedAt!.value,
+        deletedAt: highlight.deletedAt?.value || null,
+      })),
+      batchSize,
+    );
   }
 
-  private mapToMemo(row): Memo {
+  private mapToMemo(row: any): Memo {
     return Builder(Memo)
-      .id(Id.create(parseInt(row.id)))
+      .id(Id.create(Number(row.id)))
       .localId(LocalId.create(row.localId))
-      .userId(Id.create(parseInt(row.userId)))
+      .userId(Id.create(Number(row.userId)))
       .targetUrl(Url.create(row.targetUrl))
       .markdown(Markdown.create(row.markdown))
       .pos(
         Pos.create({
-          x: parseFloat(row.posX),
-          y: parseFloat(row.posY),
+          x: Number(row.posX),
+          y: Number(row.posY),
         }),
       )
       .scope(Scope.create(row.scope))
@@ -225,15 +251,15 @@ export class NodeMsRepo
 
   private mapToHighlight(row: any): Highlight {
     return Builder(Highlight)
-      .id(Id.create(parseInt(row.id)))
-      .userId(Id.create(parseInt(row.userId)))
+      .id(Id.create(Number(row.id)))
+      .userId(Id.create(Number(row.userId)))
       .targetUrl(Url.create(row.targetUrl))
       .selector(Selector.create(row.selector))
       .spans(
         row.spans.map((span) =>
           Span.create({
             text: span.text,
-            start: parseInt(span.start),
+            start: Number(span.start),
           }),
         ),
       )
